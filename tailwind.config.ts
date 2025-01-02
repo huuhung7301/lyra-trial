@@ -6,9 +6,24 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-geist-sans)", ...fontFamily.sans],
+        sans: [
+          '-apple-system',
+          'system-ui',
+          '"system-ui"',
+          '"Segoe UI"',
+          'Roboto',
+          'Oxygen-Sans',
+          'Ubuntu',
+          'Cantarell',
+          '"Helvetica Neue"',
+          'sans-serif',
+          '"Apple Color Emoji"',
+          '"Segoe UI Emoji"',
+          '"Segoe UI Symbol"',
+        ],
       },
     },
   },
   plugins: [],
 } satisfies Config;
+
