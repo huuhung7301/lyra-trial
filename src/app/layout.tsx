@@ -25,12 +25,12 @@ export default function RootLayout({
       <html lang="en">
         <body>
           <TRPCReactProvider>
-          <SignedOut>
+          {/* <SignedOut>
             <SignInButton />
           </SignedOut>
           <SignedIn>
             <UserButton />
-          </SignedIn>
+          </SignedIn> */}
           {children}
           </TRPCReactProvider>
         </body>
