@@ -135,6 +135,8 @@ function filterItemsByDate() {
 
 export function HomeContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const paddingLeftStyle = isSidebarOpen ? { paddingLeft: "15%" } : {};
+
   // Filter items by date
   const { todayBases, pastWeekBases, pastMonthBases } = filterItemsByDate();
 
@@ -154,9 +156,8 @@ export function HomeContent() {
 
       <div className="min-h-screen bg-gray-50 pt-24">
         <main
-          className={`mx-auto max-w-[1200px] p-0 pl-[calc(4rem+24px)] transition-all duration-300 ease-in-out ${
-            isSidebarOpen ? "pl-[15%]" : ""
-          }`}
+          className={`mx-auto max-w-[1200px] p-0 pl-[calc(4rem+24px)] transition-all duration-300 ease-in-out`}
+          style={paddingLeftStyle}
         >
           <h1 className="mb-6 text-3xl font-semibold">Home</h1>
 
