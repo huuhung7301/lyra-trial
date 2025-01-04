@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState } from "react";
 import { NavBar } from "~/components/navbar-main";
 import { ActionCard } from "@/components/home/action-card";
@@ -135,7 +135,6 @@ function filterItemsByDate() {
 
 export function HomeContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   // Filter items by date
   const { todayBases, pastWeekBases, pastMonthBases } = filterItemsByDate();
 
@@ -156,14 +155,14 @@ export function HomeContent() {
       <div className="min-h-screen bg-gray-50 pt-24">
         <main
           className={`mx-auto max-w-[1200px] p-0 pl-[calc(4rem+24px)] transition-all duration-300 ease-in-out ${
-            isSidebarOpen ? "pl-[16%]" : ""
+            isSidebarOpen ? "pl-[15%]" : ""
           }`}
         >
           <h1 className="mb-6 text-3xl font-semibold">Home</h1>
 
           {/* Action Cards */}
           <div
-            className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:${isSidebarOpen ? "grid-cols-3" : "grid-cols-4"}`}
+            className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${isSidebarOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}
           >
             {actionCards.map((card) => (
               <ActionCard
