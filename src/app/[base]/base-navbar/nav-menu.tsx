@@ -39,7 +39,7 @@ export function NavMenu() {
           </a>
         </li>
         <li>
-          <div className="border-l border-[#bc9182]">
+          <div className="border-l border-[#95604f]">
           <a
             href="#"
             className={`text-[#ebded9] hover:bg-[#854631] px-4 ms-2 py-2 rounded-full ${
