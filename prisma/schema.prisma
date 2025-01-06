@@ -68,3 +68,22 @@ model VerificationToken {
 
     @@unique([identifier, token])
 }
+model Base {
+  id          Int      @id @default(autoincrement())
+  title       String
+  type        String
+  workspace   String
+  createddate DateTime @default(now())
+  lastopened  DateTime @default(now())
+  owner       String
+  tables      Table[]
+}
+
+model Table {
+  id        Int      @id @default(autoincrement())
+  tabledata Json     // This stores your dynamic columns data as JSON
+  createdat DateTime @default(now())
+  updatedat DateTime @updatedAt
+  baseid    Int
+  base      Base     @relation(fields: [baseid], references: [id])
+}
