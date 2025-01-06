@@ -5,7 +5,7 @@ interface EditableCellProps {
   rowIndex: number;
   columnId: string;
   setValue: (newValue: string) => void;
-  onNavigate: (rowIndex: number, columnId: string, key: 'Tab' | 'ShiftTab' | 'Enter') => void;
+  onNavigate: (rowIndex: number, columnId: string, key: 'Tab' | 'ShiftTab' | 'Enter' | 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight') => void;
 }
 
 const EditableCell: React.FC<EditableCellProps> = ({
@@ -44,16 +44,16 @@ const EditableCell: React.FC<EditableCellProps> = ({
       onNavigate(rowIndex, columnId, 'Enter');
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
-      onNavigate(rowIndex, columnId, 'Tab'); // Move to the next column
+      onNavigate(rowIndex, columnId, 'ArrowRight'); // Move to the next column
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
-      onNavigate(rowIndex, columnId, 'ShiftTab'); // Move to the previous column
+      onNavigate(rowIndex, columnId, 'ArrowLeft'); // Move to the previous column
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
-      onNavigate(rowIndex, columnId, 'Enter'); // Move to the same column in the next row
+      onNavigate(rowIndex, columnId, 'ArrowDown'); // Move to the same column in the next row
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      onNavigate(rowIndex, columnId, 'Enter'); // Move to the same column in the previous row
+      onNavigate(rowIndex, columnId, 'ArrowUp'); // Move to the same column in the previous row
     }
   };
   

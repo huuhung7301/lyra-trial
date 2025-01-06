@@ -9,6 +9,7 @@ interface DropdownProps {
   children?: React.ReactNode;
   onOptionSelect?: (option: string, id: number) => void;
   className?: string; // Class name for the icon
+  justifyOption?: "normal" | "between"
 }
 
 export function Dropdown({
@@ -17,6 +18,7 @@ export function Dropdown({
   children,
   onOptionSelect,
   className = "",
+  justifyOption
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -62,19 +64,21 @@ export function Dropdown({
   }, []);
 
   return (
-    <div className="relative inline-block" ref={dropdownRef}>
+    <div className={`${justifyOption != 'between' ? 'relative' : ''}`} ref={dropdownRef}>
       {/* Render the button with the ChevronDown icon */}
-      <div className="flex items-center cursor-pointer">
-        {children}
-        {/* ChevronDown icon that toggles the dropdown */}
-        <ChevronDown
-          className={`h-5 w-5 text-gray-500 ${className}`}
-          onClick={(e) => {
-            e.stopPropagation(); // Prevent closing dropdown when clicking on icon
-            setIsOpen((prev) => !prev); // Toggle dropdown visibility
-          }}
-        />
-      </div>
+      <div
+  className={`flex items-center cursor-pointer ${justifyOption === 'between' ? 'justify-between' : ''}`}
+  ref={dropdownRef}
+>
+  {children}
+  <ChevronDown
+    className={`h-5 w-5 text-gray-500 ${className}`}
+    onClick={(e) => {
+      e.stopPropagation(); // Prevent closing dropdown when clicking on icon
+      setIsOpen((prev) => !prev); // Toggle dropdown visibility
+    }}
+  />
+</div>
 
       {/* Dropdown menu */}
       {isOpen && (

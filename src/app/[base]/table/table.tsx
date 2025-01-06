@@ -9,6 +9,8 @@ import {
   ColumnResizeMode,
 } from "@tanstack/react-table";
 import EditableCell from "./editable-cell";
+import { Dropdown } from "~/components/ui/dropdown";
+import { AlignLeft, Circle, User } from "lucide-react";
 
 type Task = {
   id: number;
@@ -110,7 +112,7 @@ export function DataTable() {
     {
       accessorKey: "id",
       header: "ID",
-      size: 100,
+      size: 50,
     },
     {
       accessorKey: "name",
@@ -129,7 +131,7 @@ export function DataTable() {
     {
       accessorKey: "notes",
       header: "Notes",
-      size: 300,
+      size: 200,
       cell: ({ getValue, row }) => (
         <EditableCell
           getValue={getValue}
@@ -157,7 +159,7 @@ export function DataTable() {
     {
       accessorKey: "status",
       header: "Status",
-      size: 150,
+      size: 200,
       cell: ({ getValue, row }) => (
         <EditableCell
           getValue={getValue}
@@ -177,37 +179,70 @@ export function DataTable() {
     enableColumnResizing: true,
     columnResizeMode,
   });
-
+  const headerIcons: Record<keyof Task, React.ReactNode> = {
+    id: null,
+    name: null,
+    notes: <AlignLeft className="h-4 w-4" />,
+    assignee: <User className="h-4 w-4" />,
+    status: <Circle className="h-4 w-4" />,
+  };
+  
   return (
     <div className="overflow-auto rounded-lg">
       <table ref={tableRef} className="table-fixed border-collapse text-sm">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th
-                  key={header.id}
-                  className="relative p-2"
-                  style={{
-                    width: header.getSize(),
-                  }}
-                >
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                  <div
-                    onMouseDown={header.getResizeHandler()}
-                    onTouchStart={header.getResizeHandler()}
-                    className={`absolute right-0 top-0 h-full w-[1px] cursor-col-resize touch-none select-none bg-gray-200`}
+              {headerGroup.headers.map((header) => {
+                const columnId = header.column.id as keyof Task;
+                const icon = headerIcons[columnId];
+
+                return (
+                  <th
+                    key={header.id}
+                    className="relative p-2"
                     style={{
-                      transform: "translateX(50%)",
+                      width: header.getSize(),
                     }}
                   >
-                    <div className="absolute -left-0.5 -right-0.5 bottom-1 top-1 rounded bg-transparent hover:bg-blue-500"></div>
-                  </div>
-                </th>
-              ))}
+                    {columnId === "id" ? (
+                      // Render checkbox for ID column
+                      <div className="flex items-center justify-center">
+                        <input type="checkbox" className="h-4 w-4" />
+                      </div>
+                    ) : (
+                      // Render dropdown for other columns
+                      <div className="w-full">
+                        <Dropdown
+                          id={parseInt(header.id)}
+                          type="table"
+                          className="ml-1"
+                          justifyOption="between"
+                        >
+                          <div className="flex items-center gap-2 text-sm font-normal">
+                            {icon && <span>{icon}</span>}
+                            <span>
+                              {header.column.columnDef.header as string}
+                            </span>
+                          </div>
+                        </Dropdown>
+                      </div>
+                    )}
+
+                    {/* Column resize handle */}
+                    <div
+                      onMouseDown={header.getResizeHandler()}
+                      onTouchStart={header.getResizeHandler()}
+                      className={`absolute right-0 top-0 h-full w-[1px] cursor-col-resize touch-none select-none bg-gray-200`}
+                      style={{
+                        transform: "translateX(50%)",
+                      }}
+                    >
+                      <div className="absolute -left-0.5 -right-0.5 bottom-1 top-1 rounded bg-transparent hover:bg-blue-500"></div>
+                    </div>
+                  </th>
+                );
+              })}
             </tr>
           ))}
         </thead>
@@ -215,7 +250,11 @@ export function DataTable() {
           {table.getRowModel().rows.map((row) => (
             <tr key={row.id}>
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="truncate border p-2" data-column-id={cell.column.id}>
+                <td
+                  key={cell.id}
+                  className="truncate border p-2"
+                  data-column-id={cell.column.id}
+                >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}
