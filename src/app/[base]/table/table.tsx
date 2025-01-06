@@ -1,334 +1,165 @@
-'use client'
+"use client";
 
-import { useState, useCallback } from 'react'
+import { useState } from "react";
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
-  SortingState,
   useReactTable,
   ColumnResizeMode,
-} from '@tanstack/react-table'
-import { Bell, ChevronDown, ChevronUp, Plus, User } from 'lucide-react'
+} from "@tanstack/react-table";
+import EditableCell from "./editable-cell";
 
 type Task = {
-  id: number
-  name: string
-  notes: string
-  assignee: string
-  status: string
-}
+  id: number;
+  name: string;
+  notes: string;
+  assignee: string;
+  status: string;
+};
+
+type EditableKeys = Exclude<keyof Task, 'id'>;
 
 const defaultData: Task[] = Array.from({ length: 4 }, (_, i) => ({
   id: i + 1,
-  name: '',
-  notes: '',
-  assignee: '',
-  status: '',
-}))
+  name: `Task ${i + 1}`,
+  notes: "Details...",
+  assignee: `User ${i + 1}`,
+  status: "Pending",
+}));
 
 export function DataTable() {
-  const [data, setData] = useState<Task[]>(defaultData)
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnResizeMode] = useState<ColumnResizeMode>('onChange')
-
-  const updateData = (rowIndex: number, columnId: string, value: string) => {
-    setData(old =>
-      old.map((row, index) => {
-        if (index === rowIndex) {
-          return {
-            ...row,
-            [columnId]: value,
-          }
-        }
-        return row
-      })
-    )
-  }
+  const [data, setData] = useState<Task[]>(defaultData);
+  const [columnResizeMode] = useState<ColumnResizeMode>("onChange");
+console.log("aaa", data)
+  const updateData = (rowIndex: number, columnId: EditableKeys, value: string) => {
+    setData((prev) => {
+      const newData = [...prev];
+      const rowToUpdate = newData[rowIndex];
+      if (rowToUpdate) {
+        newData[rowIndex] = {
+          ...rowToUpdate,
+          [columnId]: value,
+        };
+      }
+      return newData;
+    });
+  };
 
   const columns: ColumnDef<Task>[] = [
     {
-      id: 'select-number',
-      header: ({ table }) => (
-        <input
-          type="checkbox"
-          checked={table.getIsAllRowsSelected()}
-          onChange={table.getToggleAllRowsSelectedHandler()}
-          className="h-4 w-4 rounded border-gray-300"
+      accessorKey: "id",
+      header: "ID",
+      size: 100,
+    },
+    {
+      accessorKey: "name",
+      header: "Name",
+      size: 200,
+      cell: ({ getValue, row }) => (
+        <EditableCell
+          getValue={getValue}
+          rowIndex={row.index}
+          columnId="name"
+          setValue={(value) => updateData(row.index, "name", value)}
         />
       ),
-      cell: ({ row }) => (
-        <div className="relative group">
-          <span className="absolute inset-0 group-hover:hidden flex items-center justify-start pl-4 text-sm text-gray-500">
-            {row.index + 1}
-          </span>
-          <input
-            type="checkbox"
-            checked={row.getIsSelected()}
-            onChange={row.getToggleSelectedHandler()}
-            className="h-4 w-4 rounded border-gray-300 opacity-0 group-hover:opacity-100"
-          />
-        </div>
+    },
+    {
+      accessorKey: "notes",
+      header: "Notes",
+      size: 300,
+      cell: ({ getValue, row }) => (
+        <EditableCell
+          getValue={getValue}
+          rowIndex={row.index}
+          columnId="notes"
+          setValue={(value) => updateData(row.index, "notes", value)}
+        />
       ),
-      enableSorting: false,
-      enableResizing: false,
     },
     {
-      accessorKey: 'name',
-      header: ({ column }) => {
-        return (
-          <button
-            className="flex items-center gap-1"
-            onClick={() => column.toggleSorting()}
-          >
-            Name
-            {column.getIsSorted() === 'asc' ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : column.getIsSorted() === 'desc' ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4 opacity-0 group-hover:opacity-100" />
-            )}
-          </button>
-        )
-      },
-      cell: ({ getValue, row, column }) => {
-        const value = getValue() as string
-        return (
-          <input
-            value={value}
-            onChange={e => updateData(row.index, column.id, e.target.value)}
-            className="w-full bg-transparent focus:outline-none"
-          />
-        )
-      },
-    },
-    {
-      accessorKey: 'notes',
-      header: ({ column }) => {
-        return (
-          <button
-            className="flex items-center gap-1"
-            onClick={() => column.toggleSorting()}
-          >
-            Notes
-            {column.getIsSorted() === 'asc' ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : column.getIsSorted() === 'desc' ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4 opacity-0 group-hover:opacity-100" />
-            )}
-          </button>
-        )
-      },
-      cell: ({ getValue, row, column }) => {
-        const value = getValue() as string
-        return (
-          <input
-            value={value}
-            onChange={e => updateData(row.index, column.id, e.target.value)}
-            className="w-full bg-transparent focus:outline-none"
-          />
-        )
-      },
-    },
-    {
-      accessorKey: 'assignee',
-      header: ({ column }) => {
-        return (
-          <button
-            className="flex items-center gap-1"
-            onClick={() => column.toggleSorting()}
-          >
-            <User className="h-4 w-4" />
-            Assignee
-            {column.getIsSorted() === 'asc' ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : column.getIsSorted() === 'desc' ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4 opacity-0 group-hover:opacity-100" />
-            )}
-          </button>
-        )
-      },
-      cell: ({ getValue, row, column }) => {
-        const value = getValue() as string
-        return (
-          <input
-            value={value}
-            onChange={e => updateData(row.index, column.id, e.target.value)}
-            className="w-full bg-transparent focus:outline-none"
-          />
-        )
-      },
-    },
-    {
-      accessorKey: 'status',
-      header: ({ column }) => {
-        return (
-          <button
-            className="flex items-center gap-1"
-            onClick={() => column.toggleSorting()}
-          >
-            <Bell className="h-4 w-4" />
-            Status
-            {column.getIsSorted() === 'asc' ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : column.getIsSorted() === 'desc' ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4 opacity-0 group-hover:opacity-100" />
-            )}
-          </button>
-        )
-      },
-      cell: ({ getValue, row, column }) => {
-        const value = getValue() as string
-        return (
-          <input
-            value={value}
-            onChange={e => updateData(row.index, column.id, e.target.value)}
-            className="w-full bg-transparent focus:outline-none"
-          />
-        )
-      },
-    },
-    {
-      id: 'actions',
-      header: () => (
-        <button className="rounded-md p-1 hover:bg-gray-100">
-          <Plus className="h-4 w-4" />
-        </button>
+      accessorKey: "assignee",
+      header: "Assignee",
+      size: 200,
+      cell: ({ getValue, row }) => (
+        <EditableCell
+          getValue={getValue}
+          rowIndex={row.index}
+          columnId="assignee"
+          setValue={(value) => updateData(row.index, "assignee", value)}
+        />
       ),
-      cell: () => null,
-      enableResizing: false,
     },
-  ]
+    {
+      accessorKey: "status",
+      header: "Status",
+      size: 150,
+      cell: ({ getValue, row }) => (
+        <EditableCell
+          getValue={getValue}
+          rowIndex={row.index}
+          columnId="status"
+          setValue={(value) => updateData(row.index, "status", value)}
+        />
+      ),
+    },
+  ];
 
   const table = useReactTable({
     data,
     columns,
-    state: {
-      sorting,
-    },
-    columnResizeMode,
-    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     enableColumnResizing: true,
-    meta: {
-      updateData: (rowIndex: number, columnId: string, value: string) => {
-        updateData(rowIndex, columnId, value)
-      },
-    },
-  })
-
-  const addNewRow = useCallback(() => {
-    const newId = data.length + 1
-    setData(old => [...old, {
-      id: newId,
-      name: '',
-      notes: '',
-      assignee: '',
-      status: '',
-    }])
-  }, [data.length])
+    columnResizeMode,
+  });
 
   return (
-    <div className="rounded-lg border">
-      <div className="w-full overflow-auto">
-        <table className="w-full caption-bottom text-sm" style={{ width: table.getCenterTotalSize() }}>
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="border-b">
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <th
-                      key={header.id}
-                      className="relative h-12 px-4 text-left align-middle font-medium text-gray-500 [&:has([role=checkbox])]:pr-0"
-                      style={{
-                        width: header.getSize(),
-                      }}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      {header.column.getCanResize() && (
-                        <div
-                          onMouseDown={header.getResizeHandler()}
-                          onTouchStart={header.getResizeHandler()}
-                          className={`absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none bg-gray-200 opacity-0 hover:opacity-100 ${
-                            header.column.getIsResizing() ? 'opacity-100' : ''
-                          }`}
-                        />
-                      )}
-                    </th>
-                  )
-                })}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row, i) => (
-                <tr
-                  key={row.id}
-                  className="group border-b transition-colors hover:bg-gray-50"
+    <div className="overflow-auto rounded-lg">
+      <table className="table-fixed border-collapse text-sm">
+        <thead>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <th
+                  key={header.id}
+                  className="relative p-2"
+                  style={{
+                    width: header.getSize(),
+                  }}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="p-4 align-middle [&:has([role=checkbox])]:pr-0"
-                      style={{
-                        width: cell.column.getSize(),
-                      }}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className="h-24 text-center text-gray-500"
-                >
-                  No results.
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
+                  <div
+                    onMouseDown={header.getResizeHandler()}
+                    onTouchStart={header.getResizeHandler()}
+                    className={`absolute right-0 top-0 h-full w-[1px] cursor-col-resize touch-none select-none bg-gray-200`}
+                    style={{
+                      transform: "translateX(50%)",
+                    }}
+                  >
+                    <div className="absolute -left-0.5 -right-0.5 bottom-1 top-1 rounded bg-transparent hover:bg-blue-500"></div>
+                  </div>
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id} className="truncate border p-2">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-      <div className="flex items-center gap-2 border-t p-4">
-        <button 
-          className="rounded-full p-2 hover:bg-gray-100"
-          onClick={addNewRow}
-        >
-          <Plus className="h-4 w-4" />
-        </button>
-        <button 
-          className="flex items-center gap-2 rounded-full px-4 py-2 hover:bg-gray-100"
-          onClick={addNewRow}
-        >
-          <Plus className="h-4 w-4" />
-          Add...
-        </button>
-        <div className="ml-auto text-sm text-gray-500">
-          {table.getRowModel().rows.length} records
-        </div>
-      </div>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-  )
+  );
 }
 

@@ -10,7 +10,6 @@ export default function BasePage() {
   const params = useParams(); // Access the dynamic route parameters
   const { base } = params; // Destructure to get the 'base' value
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
-  console.log("aaa", isSidebarOpen);
   return (
     <main>
       <div className="z-50">
@@ -25,12 +24,9 @@ export default function BasePage() {
           <BaseSideBar />
         </div>
       )}
-      <div>
-        <DataTable/>
+      <div className={`${isSidebarOpen ? "ml-[20%]" : ""} transition-all`}>
+        <DataTable />
       </div>
-
-      <h1>Dynamic Base Page: {base}</h1>
-      {/* You can display or use the base variable here */}
     </main>
   );
 }
