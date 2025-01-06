@@ -13,9 +13,8 @@ import { Button } from "@/components/ui/button";
 import { AddColumnModal } from "./add-column-modal";
 import type { ColumnDef, ColumnResizeMode } from "@tanstack/react-table";
 
-type Task = {
-  [key: string]: string | number;
-};
+type Task = Record<string, string | number>;
+
 
 const defaultData: Task[] = Array.from({ length: 4 }, (_, i) => ({
   id: i + 1,
