@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, KeyboardEvent } from "react";
 
 interface EditableCellProps {
   getValue: () => unknown;
   rowIndex: number;
   columnId: string;
   setValue: (newValue: string) => void;
+  onNavigate: (rowIndex: number, columnId: string, key: 'Tab' | 'ShiftTab' | 'Enter') => void;
 }
 
 const EditableCell: React.FC<EditableCellProps> = ({
@@ -12,6 +13,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
   rowIndex,
   columnId,
   setValue,
+  onNavigate,
 }) => {
   const initialValue = getValue() as string;
   const [value, setLocalValue] = useState<string>(initialValue);
@@ -30,13 +32,40 @@ const EditableCell: React.FC<EditableCellProps> = ({
     setValue(value);
   };
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      onNavigate(rowIndex, columnId, 'Tab');
+    } else if (e.key === 'Tab' && e.shiftKey) {
+      e.preventDefault();
+      onNavigate(rowIndex, columnId, 'ShiftTab');
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      onNavigate(rowIndex, columnId, 'Enter');
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      onNavigate(rowIndex, columnId, 'Tab'); // Move to the next column
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      onNavigate(rowIndex, columnId, 'ShiftTab'); // Move to the previous column
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      onNavigate(rowIndex, columnId, 'Enter'); // Move to the same column in the next row
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      onNavigate(rowIndex, columnId, 'Enter'); // Move to the same column in the previous row
+    }
+  };
+  
+
   return (
     <input
       ref={inputRef}
       value={value}
       onChange={handleChange}
       onBlur={handleBlur}
-      className="w-full bg-transparent p-1"
+      onKeyDown={handleKeyDown}
+      className="w-full bg-transparent p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
     />
   );
 };

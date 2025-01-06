@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import {
   ColumnDef,
   flexRender,
@@ -31,8 +31,9 @@ const defaultData: Task[] = Array.from({ length: 4 }, (_, i) => ({
 export function DataTable() {
   const [data, setData] = useState<Task[]>(defaultData);
   const [columnResizeMode] = useState<ColumnResizeMode>("onChange");
-console.log("aaa", data)
-  const updateData = (rowIndex: number, columnId: EditableKeys, value: string) => {
+  const tableRef = useRef<HTMLTableElement>(null);
+
+  const updateData = useCallback((rowIndex: number, columnId: EditableKeys, value: string) => {
     setData((prev) => {
       const newData = [...prev];
       const rowToUpdate = newData[rowIndex];
@@ -44,9 +45,68 @@ console.log("aaa", data)
       }
       return newData;
     });
-  };
+  }, []);
 
-  const columns: ColumnDef<Task>[] = [
+  const handleCellNavigation = useCallback(
+    (
+      rowIndex: number,
+      columnId: string,
+      key: 'Tab' | 'ShiftTab' | 'Enter' | 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight'
+    ) => {
+      const editableColumns: string[] = ['name', 'notes', 'assignee', 'status'];
+  
+      const currentColumnIndex = editableColumns.indexOf(columnId);
+  
+      let nextRowIndex = rowIndex;
+      let nextColumnIndex = currentColumnIndex;
+  
+      if (key === 'Tab') {
+        // Move to the next column within the same row
+        if (currentColumnIndex < editableColumns.length - 1) {
+          nextColumnIndex = currentColumnIndex + 1;
+        }
+      } else if (key === 'ShiftTab') {
+        // Move to the previous column within the same row
+        if (currentColumnIndex > 0) {
+          nextColumnIndex = currentColumnIndex - 1;
+        }
+      } else if (key === 'Enter') {
+        // Move to the same column in the next row
+        nextRowIndex = (rowIndex + 1) % data.length;
+      } else if (key === 'ArrowUp') {
+        // Move to the same column in the previous row
+        nextRowIndex = rowIndex > 0 ? rowIndex - 1 : data.length - 1;
+      } else if (key === 'ArrowDown') {
+        // Move to the same column in the next row
+        nextRowIndex = (rowIndex + 1) % data.length;
+      } else if (key === 'ArrowLeft') {
+        // Move to the previous column within the same row
+        if (currentColumnIndex > 0) {
+          nextColumnIndex = currentColumnIndex - 1;
+        }
+      } else if (key === 'ArrowRight') {
+        // Move to the next column within the same row
+        if (currentColumnIndex < editableColumns.length - 1) {
+          nextColumnIndex = currentColumnIndex + 1;
+        }
+      }
+  
+      // Find the next column ID
+      const nextColumnId = editableColumns[nextColumnIndex];
+  
+      // Find the next cell and focus it
+      const nextCell = tableRef.current?.querySelector(
+        `tr:nth-child(${nextRowIndex + 1}) td[data-column-id="${nextColumnId}"] input`
+      ) as HTMLInputElement | null;
+  
+      nextCell?.focus();
+    },
+    [data.length]
+  );
+  
+  
+
+  const columns = useMemo<ColumnDef<Task, keyof Task>[]>(() => [
     {
       accessorKey: "id",
       header: "ID",
@@ -62,6 +122,7 @@ console.log("aaa", data)
           rowIndex={row.index}
           columnId="name"
           setValue={(value) => updateData(row.index, "name", value)}
+          onNavigate={handleCellNavigation}
         />
       ),
     },
@@ -75,6 +136,7 @@ console.log("aaa", data)
           rowIndex={row.index}
           columnId="notes"
           setValue={(value) => updateData(row.index, "notes", value)}
+          onNavigate={handleCellNavigation}
         />
       ),
     },
@@ -88,6 +150,7 @@ console.log("aaa", data)
           rowIndex={row.index}
           columnId="assignee"
           setValue={(value) => updateData(row.index, "assignee", value)}
+          onNavigate={handleCellNavigation}
         />
       ),
     },
@@ -101,10 +164,11 @@ console.log("aaa", data)
           rowIndex={row.index}
           columnId="status"
           setValue={(value) => updateData(row.index, "status", value)}
+          onNavigate={handleCellNavigation}
         />
       ),
     },
-  ];
+  ], [updateData, handleCellNavigation]);
 
   const table = useReactTable({
     data,
@@ -116,7 +180,7 @@ console.log("aaa", data)
 
   return (
     <div className="overflow-auto rounded-lg">
-      <table className="table-fixed border-collapse text-sm">
+      <table ref={tableRef} className="table-fixed border-collapse text-sm">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
@@ -151,7 +215,7 @@ console.log("aaa", data)
           {table.getRowModel().rows.map((row) => (
             <tr key={row.id}>
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="truncate border p-2">
+                <td key={cell.id} className="truncate border p-2" data-column-id={cell.column.id}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}
