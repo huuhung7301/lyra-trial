@@ -2,17 +2,16 @@
 
 import { useState, useCallback, useRef, useMemo } from "react";
 import {
-  ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
-  ColumnResizeMode,
 } from "@tanstack/react-table";
 import EditableCell from "./editable-cell";
 import { Dropdown } from "~/components/ui/dropdown";
 import { AlignLeft, Circle, User, PlusCircle, PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AddColumnModal } from "./add-column-modal";
+import type { ColumnDef, ColumnResizeMode } from "@tanstack/react-table";
 
 type Task = {
   [key: string]: string | number;
@@ -68,7 +67,7 @@ export function DataTable() {
   );
 
   const columns = useMemo<ColumnDef<Task>[]>(() => {
-    if (data.length === 0 || !data[0]) return []; // Ensure data[0] is defined
+    if (!data[0]) return []; // Ensure data[0] is defined
 
     return Object.keys(data[0]).map((key, index) => ({
       accessorKey: key,
@@ -111,7 +110,7 @@ export function DataTable() {
     );
   };
   const addRow = () => {
-    if (data.length === 0 || !data[0]) return [];
+    if (!data[0]) return [];
 
     const newRow = Object.keys(data[0]).reduce((acc, key) => {
       acc[key as keyof Task] = ""; // Set empty string for each column
@@ -141,7 +140,7 @@ export function DataTable() {
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   const columnId = header.column.id;
-                  const icon = headerIcons[columnId] || null;
+                  const icon = headerIcons[columnId] ?? null;
 
                   return (
                     <th
