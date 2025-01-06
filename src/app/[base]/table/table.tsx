@@ -109,17 +109,18 @@ export function DataTable() {
     );
   };
   const addRow = () => {
-    if (!data[0]) return [];
-
+    if (!data[0]) return;
+  
     const newRow = Object.keys(data[0]).reduce((acc, key) => {
-      acc[key as keyof Task] = ""; // Set empty string for each column
-      return acc;
-    }, {} as Task); // Initialize as an empty Task object
-
-    newRow.id = data.length + 1; // Increment the id for the new row
-
+      return {
+        ...acc,
+        [key]: "",
+      };
+    }, { id: data.length + 1 }); // Add the id directly here.
+  
     setData((prevData) => [...prevData, newRow]);
   };
+  
 
   return (
     <div>
