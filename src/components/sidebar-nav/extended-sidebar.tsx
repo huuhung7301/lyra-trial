@@ -10,22 +10,52 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation"; // Import useRouter for navigation
 import { useState } from "react";
+import { api } from "~/trpc/react";
 
 interface ExtendedSidebarProps {
   isExpanded: boolean;
 }
 
 export function ExtendedSidebar({ isExpanded }: ExtendedSidebarProps) {
-  const [pageId, setPageId] = useState(0); // Keep track of new page IDs
   const router = useRouter();
+  const createBaseMutation = api.base.createBase.useMutation();
+  const createTableMutation = api.table.createTable.useMutation();
 
-  const handleCreate = () => {
-    const newPageId = pageId + 1; // Generate a new page ID
-    setPageId(newPageId);
+  const handleCreate = async () => {
+    try {
+      // Create a new base
+      const newBaseId = await createBaseMutation.mutateAsync({
+        title: `Untitled Base`,
+        type: "Grid",
+        workspace: "Personal",
+        owner: "guest",
+      });
 
-    // Navigate to the new page
-    router.push(`/${newPageId}`);
+      // Table data for the new table
+      const tableData = [
+        { id: 1, name: "", notes: "", assignee: "", status: "" },
+        { id: 2, name: "", notes: "", assignee: "", status: "" },
+        { id: 3, name: "", notes: "", assignee: "", status: "" },
+        { id: 4, name: "", notes: "", assignee: "", status: "" },
+      ];
+
+      // Create a table for the new base and capture the newTableId
+      const newTable = await createTableMutation.mutateAsync({
+        name: "Table 1", // Example name, modify as needed
+        baseid: newBaseId,
+        tabledata: tableData, // Pass the table data
+      });
+
+      // Get the newTableId from the newly created table
+      const newTableId = newTable.id;
+
+      // Navigate to the new base and table's URL using both the newBaseId and newTableId
+      router.push(`/${newBaseId}-${newTableId}`);
+    } catch (error) {
+      console.error("Error creating base and table:", error);
+    }
   };
+
   return (
     <div
       className={`fixed left-0 flex h-[calc(100vh-48px)] w-1/5 transform flex-col border-r bg-white transition-all duration-300 ease-in-out ${

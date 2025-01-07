@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavBar } from "~/components/navbar-main";
 import { ActionCard } from "@/components/home/action-card";
 import { FilterSection } from "@/components/home/filter-section";
@@ -46,66 +46,7 @@ const actionCards = [
   },
 ];
 
-const recentItems: RecentItem[] = [
-  {
-    id: "1",
-    title: "Lyra Base",
-    type: "Base",
-    workspace: "My First Workspace",
-    lastOpened: new Date("2024-12-30"),
-    icon: "Ly",
-  },
-  {
-    id: "2",
-    title: "Lyra base",
-    type: "Base",
-    workspace: "My First Workspace",
-    lastOpened: new Date("2024-12-31"),
-    icon: "Ly",
-  },
-  {
-    id: "3",
-    title: "Marketing Campaign",
-    type: "Base",
-    workspace: "Work Projects",
-    lastOpened: new Date("2024-12-20"),
-    icon: "Mc",
-  },
-  {
-    id: "4",
-    title: "Product Roadmap2",
-    type: "Base",
-    workspace: "Product Team",
-    lastOpened: new Date("2024-12-12"),
-    icon: "Pr",
-  },
-  {
-    id: "5",
-    title: "Product Roadmap3",
-    type: "Base",
-    workspace: "Product Team",
-    lastOpened: new Date("2024-12-19"),
-    icon: "Pr",
-  },
-  {
-    id: "6",
-    title: "Product Roadmap4",
-    type: "Base",
-    workspace: "Product Team",
-    lastOpened: new Date("2024-12-15"),
-    icon: "Pr",
-  },
-  {
-    id: "7",
-    title: "Product Roadmap4",
-    type: "Base",
-    workspace: "Product Team",
-    lastOpened: new Date("2025-01-03"),
-    icon: "Pr",
-  },
-];
-
-function filterItemsByDate() {
+function filterItemsByDate(recentItems: RecentItem[]) {
   const today = new Date();
   today.setHours(0, 0, 0, 0); // set to the start of the day
 
@@ -135,10 +76,38 @@ function filterItemsByDate() {
 
 export function HomeContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
+
   const paddingLeftStyle = isSidebarOpen ? { paddingLeft: "15%" } : {};
 
+  // Fetch the data from the API
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await fetch("/api/trpc/base.getAllBases");
+        const data = await response.json();
+
+        // Format the data to match the RecentItem type
+        const formattedData = data.result.data.json.map((item: any) => ({
+          id: item.id.toString(),
+          title: item.title,
+          type: item.type,
+          workspace: item.workspace,
+          lastOpened: new Date(item.lastopened),
+          icon: item.title.slice(0, 2), // Assuming first two letters for icon
+        }));
+
+        setRecentItems(formattedData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    fetchData();
+  }, []);
+
   // Filter items by date
-  const { todayBases, pastWeekBases, pastMonthBases } = filterItemsByDate();
+  const { todayBases, pastWeekBases, pastMonthBases } = filterItemsByDate(recentItems);
 
   return (
     <div>

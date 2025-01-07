@@ -4,10 +4,10 @@ import { ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
 interface DropdownProps {
-  id: number;
+  id: string;
   type: "table" | "view";
   children?: React.ReactNode;
-  onOptionSelect?: (option: string, id: number) => void;
+  onOptionSelect?: (option: string, id: string) => void;
   className?: string; // Class name for the icon
   justifyOption?: "normal" | "between"
 }

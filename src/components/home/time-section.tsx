@@ -23,6 +23,7 @@ export function TimeSection({ title, bases, isSidebarOpen }: TimeSectionProps) {
         {bases.map((base) => (
           <BaseCard
             key={base.id}
+            baseId={base.id}
             title={base.title}
             type={base.type}
             icon={base.icon}

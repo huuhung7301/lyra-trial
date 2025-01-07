@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useMemo } from "react";
+import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -12,35 +12,58 @@ import { AlignLeft, Circle, User, PlusCircle, PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AddColumnModal } from "./add-column-modal";
 import type { ColumnDef, ColumnResizeMode } from "@tanstack/react-table";
-
+import { api } from "~/trpc/react";
 type Task = Record<string, string | number>;
 
 const defaultData: Task[] = Array.from({ length: 4 }, (_, i) => ({
-  id: i + 1,
+  id: `i + 1`,
   name: `Task ${i + 1}`,
   notes: "Details...",
   assignee: `User ${i + 1}`,
   status: "Pending",
 }));
 
-export function DataTable() {
+interface DataTableProps {
+  tableId: string | null;
+}
+
+export function DataTable({ tableId }: DataTableProps) {
   const [data, setData] = useState<Task[]>(defaultData);
   const [columnResizeMode] = useState<ColumnResizeMode>("onChange");
   const tableRef = useRef<HTMLTableElement>(null);
   const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false);
   const [checkedRows, setCheckedRows] = useState<Set<string>>(new Set());
+  const tableIdNum = tableId ? parseInt(tableId) : null;
 
-  const handleCheckboxChange = (rowId: string) => {
-    setCheckedRows((prevCheckedRows) => {
-      const newCheckedRows = new Set(prevCheckedRows);
-      if (newCheckedRows.has(rowId)) {
-        newCheckedRows.delete(rowId); // Uncheck the box
-      } else {
-        newCheckedRows.add(rowId); // Check the box
+  const { data: tableData, isLoading, isError } = api.table.getTableById.useQuery(
+    { id: tableIdNum ?? 0 }, // Pass the table ID as a number
+    {
+      enabled: !!tableIdNum, // Only fetch if tableId is valid
+    }
+  );
+
+  // Update data when tableData is available
+  useEffect(() => {
+    if (tableData?.tabledata) {
+      try {
+        // Parse tabledata from JSON string to array
+        const parsedData = (tableData.tabledata as Array<Object>);
+
+        // Format the parsed data to match Task structure
+        const formattedData: Task[] = parsedData.map((task: any, index: number) => ({
+          id: (index + 1).toString(), // Manually assign an incrementing id
+          name: task.name,
+          notes: task.notes,
+          assignee: task.assignee,
+          status: task.status,
+        }));
+
+        setData(formattedData); // Set the parsed table data
+      } catch (error) {
+        console.error("Error parsing tabledata JSON:", error);
       }
-      return newCheckedRows;
-    });
-  };
+    }
+  }, [tableData]);
   const updateData = useCallback(
     (rowIndex: number, columnId: string, value: string | number) => {
       setData((prev) => {
@@ -186,6 +209,7 @@ export function DataTable() {
     setData((prevData) => [...prevData, newRow]);
   };
 
+  console.log("aaa", defaultData)
   return (
     <div>
       <AddColumnModal
@@ -194,7 +218,7 @@ export function DataTable() {
         onAddColumn={addColumn}
       />
       <div className="flex items-start overflow-auto rounded-lg">
-        <table ref={tableRef} className="text table-fixed border-collapse">
+        <table ref={tableRef} className="text table-fixed border-collapse overflow-auto">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="bg-[#f4f4f4]">
@@ -217,7 +241,7 @@ export function DataTable() {
                       ) : (
                         <div className="w-full">
                           <Dropdown
-                            id={parseInt(header.id)}
+                            id={(header.id)}
                             type="table"
                             className="ml-1"
                             justifyOption="between"
@@ -276,7 +300,7 @@ export function DataTable() {
                               type="checkbox"
                               className="h-4 w-4"
                               checked={isChecked}
-                              onChange={() => handleCheckboxChange(row.id)}
+                              onChange={() => {}}
                             />
                           </div>
                         </>

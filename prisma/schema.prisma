@@ -81,6 +81,7 @@ model Base {
 
 model Table {
   id        Int      @id @default(autoincrement())
+  name      String
   tabledata Json     // This stores your dynamic columns data as JSON
   createdat DateTime @default(now())
   updatedat DateTime @updatedAt

@@ -6,25 +6,25 @@ import { Button } from "@/components/ui/button";
 import { Dropdown } from "~/components/ui/dropdown";
 
 interface Table {
-  id: number;
+  id: string;
   name: string;
 }
 
-export function TableList() {
-  const tables: Table[] = [
-    { id: 1, name: "Table 1" },
-    { id: 2, name: "Table 2" },
-    { id: 3, name: "Table 3" },
-    { id: 4, name: "Table 4" },
-  ];
+interface TableListProps {
+  tables: Table[]; // Pass tables as a prop
+  selectedTableId: string;
+  setSelectedTableId: React.Dispatch<React.SetStateAction<string>>;
+}
 
-  const [selectedTableId, setSelectedTableId] = useState<number | null>(1);
-
+export function TableList({ tables, selectedTableId, setSelectedTableId }: TableListProps) {
+  // If the tables array is empty, initialize with a default table
+  const defaultTable: Table[] = tables.length === 0 ? [{ id: "1", name: "Table 1" }] : tables;
+  
   return (
     <div className="flex items-center justify-between bg-[#944e37]">
       <div className="flex items-center font-normal bg-[#854631] w-[88%] rounded-t-lg pl-4">
         {/* Generate buttons dynamically */}
-        {tables.map((table) => (
+        {defaultTable.map((table) => (
           <div key={table.id} className="relative inline-block">
             {/* Render button only if the table is not selected */}
             {selectedTableId !== table.id ? (
@@ -54,7 +54,7 @@ export function TableList() {
           </div>
         ))}
         <Dropdown
-          id={123}
+          id="123"
           type="table"
           onOptionSelect={(option, id) =>
             console.log(`Selected ${option} for table ID ${id}`)
