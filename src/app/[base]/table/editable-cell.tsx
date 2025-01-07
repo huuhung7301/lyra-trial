@@ -28,10 +28,6 @@ const EditableCell: React.FC<EditableCellProps> = ({
     setLocalValue(newValue);
   };
 
-  const handleBlur = () => {
-    setValue(value);
-  };
-
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Tab' && !e.shiftKey) {
       e.preventDefault();
@@ -56,14 +52,12 @@ const EditableCell: React.FC<EditableCellProps> = ({
       onNavigate(rowIndex, columnId, 'ArrowUp'); // Move to the same column in the previous row
     }
   };
-  
 
   return (
     <input
       ref={inputRef}
       value={value}
       onChange={handleChange}
-      onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       className="w-full bg-transparent p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
     />

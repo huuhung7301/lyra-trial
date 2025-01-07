@@ -51,18 +51,57 @@ export function DataTable() {
     (
       rowIndex: number,
       columnId: string,
-      key:
-        | "Tab"
-        | "ShiftTab"
-        | "Enter"
-        | "ArrowUp"
-        | "ArrowDown"
-        | "ArrowLeft"
-        | "ArrowRight",
+      key: "Tab" | "ShiftTab" | "Enter" | "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight"
     ) => {
-      // ... (keep the existing navigation logic)
+      const editableColumns: string[] = ["name", "notes", "assignee", "status"];
+
+      const currentColumnIndex = editableColumns.indexOf(columnId);
+
+      let nextRowIndex = rowIndex;
+      let nextColumnIndex = currentColumnIndex;
+
+      if (key === "Tab") {
+        // Move to the next column within the same row
+        if (currentColumnIndex < editableColumns.length - 1) {
+          nextColumnIndex = currentColumnIndex + 1;
+        }
+      } else if (key === "ShiftTab") {
+        // Move to the previous column within the same row
+        if (currentColumnIndex > 0) {
+          nextColumnIndex = currentColumnIndex - 1;
+        }
+      } else if (key === "Enter") {
+        // Move to the same column in the next row
+        nextRowIndex = (rowIndex + 1) % data.length;
+      } else if (key === "ArrowUp") {
+        // Move to the same column in the previous row
+        nextRowIndex = rowIndex - 1;
+      } else if (key === "ArrowDown") {
+        // Move to the same column in the next row
+        nextRowIndex = (rowIndex + 1) % data.length;
+      } else if (key === "ArrowLeft") {
+        // Move to the previous column within the same row
+        if (currentColumnIndex > 0) {
+          nextColumnIndex = currentColumnIndex - 1;
+        }
+      } else if (key === "ArrowRight") {
+        // Move to the next column within the same row
+        if (currentColumnIndex < editableColumns.length - 1) {
+          nextColumnIndex = currentColumnIndex + 1;
+        }
+      }
+
+      // Find the next column ID
+      const nextColumnId = editableColumns[nextColumnIndex];
+
+      // Find the next cell and focus it
+      const nextCell = tableRef.current?.querySelector(
+        `tr:nth-child(${nextRowIndex + 1}) td[data-column-id="${nextColumnId}"] input`
+      ) as HTMLInputElement | null;
+
+      nextCell?.focus();
     },
-    [data.length],
+    [data.length]
   );
 
   const columns = useMemo<ColumnDef<Task>[]>(() => {
