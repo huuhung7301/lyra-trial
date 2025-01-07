@@ -15,7 +15,6 @@ import type { ColumnDef, ColumnResizeMode } from "@tanstack/react-table";
 
 type Task = Record<string, string | number>;
 
-
 const defaultData: Task[] = Array.from({ length: 4 }, (_, i) => ({
   id: i + 1,
   name: `Task ${i + 1}`,
@@ -29,7 +28,19 @@ export function DataTable() {
   const [columnResizeMode] = useState<ColumnResizeMode>("onChange");
   const tableRef = useRef<HTMLTableElement>(null);
   const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false);
+  const [checkedRows, setCheckedRows] = useState<Set<string>>(new Set());
 
+  const handleCheckboxChange = (rowId: string) => {
+    setCheckedRows((prevCheckedRows) => {
+      const newCheckedRows = new Set(prevCheckedRows);
+      if (newCheckedRows.has(rowId)) {
+        newCheckedRows.delete(rowId); // Uncheck the box
+      } else {
+        newCheckedRows.add(rowId); // Check the box
+      }
+      return newCheckedRows;
+    });
+  };
   const updateData = useCallback(
     (rowIndex: number, columnId: string, value: string | number) => {
       setData((prev) => {
@@ -51,9 +62,21 @@ export function DataTable() {
     (
       rowIndex: number,
       columnId: string,
-      key: "Tab" | "ShiftTab" | "Enter" | "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight"
+      key:
+        | "Tab"
+        | "ShiftTab"
+        | "Enter"
+        | "ArrowUp"
+        | "ArrowDown"
+        | "ArrowLeft"
+        | "ArrowRight",
     ) => {
-      const editableColumns: string[] = ["name", "notes", "assignee", "status"];
+      const editableColumns = table.getHeaderGroups().flatMap(
+        (headerGroup) =>
+          headerGroup.headers
+            .map((header) => header.column.id)
+            .filter((id, index) => index !== 0), // Exclude the first column
+      );
 
       const currentColumnIndex = editableColumns.indexOf(columnId);
 
@@ -96,12 +119,12 @@ export function DataTable() {
 
       // Find the next cell and focus it
       const nextCell = tableRef.current?.querySelector(
-        `tr:nth-child(${nextRowIndex + 1}) td[data-column-id="${nextColumnId}"] input`
+        `tr:nth-child(${nextRowIndex + 1}) td[data-column-id="${nextColumnId}"] input`,
       ) as HTMLInputElement | null;
 
       nextCell?.focus();
     },
-    [data.length]
+    [data.length],
   );
 
   const columns = useMemo<ColumnDef<Task>[]>(() => {
@@ -149,34 +172,32 @@ export function DataTable() {
   };
   const addRow = () => {
     if (!data[0]) return;
-  
-    const newRow = Object.keys(data[0]).reduce((acc, key) => {
-      return {
-        ...acc,
-        [key]: "",
-      };
-    }, { id: data.length + 1 }); // Add the id directly here.
-  
+
+    const newRow = Object.keys(data[0]).reduce(
+      (acc, key) => {
+        return {
+          ...acc,
+          [key]: "",
+        };
+      },
+      { id: data.length + 1 },
+    ); // Add the id directly here.
+
     setData((prevData) => [...prevData, newRow]);
   };
-  
 
   return (
     <div>
-      <Button onClick={() => setIsAddColumnModalOpen(true)} className="mb-4">
-        <PlusCircle className="mr-2 h-4 w-4" />
-        Add Column
-      </Button>
       <AddColumnModal
         open={isAddColumnModalOpen}
         onOpenChange={setIsAddColumnModalOpen}
         onAddColumn={addColumn}
       />
-      <div className="overflow-auto rounded-lg">
-        <table ref={tableRef} className="table-fixed border-collapse text-sm">
+      <div className="flex items-start overflow-auto rounded-lg">
+        <table ref={tableRef} className="text table-fixed border-collapse">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
+              <tr key={headerGroup.id} className="bg-[#f4f4f4]">
                 {headerGroup.headers.map((header) => {
                   const columnId = header.column.id;
                   const icon = headerIcons[columnId] ?? null;
@@ -228,28 +249,77 @@ export function DataTable() {
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    className="truncate border p-2"
-                    data-column-id={cell.column.id}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
+            {table.getRowModel().rows.map((row) => {
+              const isChecked = checkedRows.has(row.id); // Check if this row is checked
+
+              return (
+                <tr
+                  key={row.id}
+                  className={`group ${isChecked ? "hover:bg-[#f8f8f8]" : "hover:bg-[#f8f8f8]"} `}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className="relative border px-2"
+                      data-column-id={cell.column.id}
+                    >
+                      {cell.column.id === "id" ? (
+                        <>
+                          {/* Show the ID number when not hovered */}
+                          <div className="absolute inset-0 flex items-center justify-center opacity-100 transition-opacity group-hover:opacity-0">
+                            {row.index + 1}
+                          </div>
+
+                          {/* Show the checkbox when hovered */}
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4"
+                              checked={isChecked}
+                              onChange={() => handleCheckboxChange(row.id)}
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+            <tr>
+              <td
+                className="group border p-2 hover:bg-[#f8f8f8]"
+                colSpan={(data[0] ? Object.keys(data[0]).length : 0) + 1}
+              >
+                <button
+                  onClick={addRow}
+                  className="text-grey flex items-center gap-2 rounded-lg bg-transparent px-2 py-2 group-hover:bg-[#f1f3f5]"
+                >
+                  <PlusIcon className="h-5 w-5" />
+                </button>
+              </td>
+            </tr>
           </tbody>
         </table>
+        <Button
+          onClick={() => setIsAddColumnModalOpen(true)}
+          className="flex items-center gap-2 bg-[#f4f4f4] px-12"
+        >
+          <PlusIcon className="h-6 w-6" />
+        </Button>
       </div>
+
       <div>
         <button
           onClick={addRow}
           className="absolute bottom-[5%] left-[20%] rounded-full bg-white px-4 py-2 text-black"
         >
-          <PlusIcon/>
+          <PlusIcon />
         </button>
       </div>
     </div>
