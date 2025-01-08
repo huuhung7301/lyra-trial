@@ -35,11 +35,15 @@ export function DataTable({ tableId }: DataTableProps) {
   const [checkedRows, setCheckedRows] = useState<Set<string>>(new Set());
   const tableIdNum = tableId ? parseInt(tableId) : null;
 
-  const { data: tableData, isLoading, isError } = api.table.getTableById.useQuery(
+  const {
+    data: tableData,
+    isLoading,
+    isError,
+  } = api.table.getTableById.useQuery(
     { id: tableIdNum ?? 0 }, // Pass the table ID as a number
     {
       enabled: !!tableIdNum, // Only fetch if tableId is valid
-    }
+    },
   );
 
   // Update data when tableData is available
@@ -60,7 +64,7 @@ export function DataTable({ tableId }: DataTableProps) {
       }
     }
   }, [tableData]);
-  
+
   const updateData = useCallback(
     (rowIndex: number, columnId: string, value: string | number) => {
       setData((prev) => {
@@ -206,7 +210,7 @@ export function DataTable({ tableId }: DataTableProps) {
     setData((prevData) => [...prevData, newRow]);
   };
 
-  console.log("aaa", defaultData)
+  console.log("aaa", defaultData);
   return (
     <div>
       <AddColumnModal
@@ -215,7 +219,10 @@ export function DataTable({ tableId }: DataTableProps) {
         onAddColumn={addColumn}
       />
       <div className="flex items-start overflow-auto rounded-lg">
-        <table ref={tableRef} className="text table-fixed border-collapse overflow-auto">
+        <table
+          ref={tableRef}
+          className="text table-fixed border-collapse overflow-auto"
+        >
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="bg-[#f4f4f4]">
@@ -238,7 +245,7 @@ export function DataTable({ tableId }: DataTableProps) {
                       ) : (
                         <div className="w-full">
                           <Dropdown
-                            id={(header.id)}
+                            id={header.id}
                             type="table"
                             className="ml-1"
                             justifyOption="between"
@@ -297,7 +304,17 @@ export function DataTable({ tableId }: DataTableProps) {
                               type="checkbox"
                               className="h-4 w-4"
                               checked={isChecked}
-                              onChange={() => {}}
+                              onChange={() => {
+                                setCheckedRows((prev) => {
+                                  const newCheckedRows = new Set(prev);
+                                  if (newCheckedRows.has(row.id)) {
+                                    newCheckedRows.delete(row.id); // Uncheck if already selected
+                                  } else {
+                                    newCheckedRows.add(row.id); // Check if not selected
+                                  }
+                                  return newCheckedRows;
+                                });
+                              }}
                             />
                           </div>
                         </>
