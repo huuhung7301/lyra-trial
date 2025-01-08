@@ -66,22 +66,28 @@ export const tableRouter = createTRPCRouter({
   /**
    * Update a table by ID
    */
-  updateTable: protectedProcedure
-    .input(
-      z.object({
-        id: z.number(),
-        name: z.string().optional(),
-        tabledata: z.object({}).optional(), // Optional update fields
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { id, ...updateData } = input;
-
-      return await ctx.db.table.update({
-        where: { id },
-        data: updateData,
-      });
+  updateTable: publicProcedure
+  .input(
+    z.object({
+      id: z.number(),
+      tabledata: z.unknown().optional(), // Expecting an array of objects for tabledata
     }),
+  )
+  .mutation(async ({ ctx, input }) => {
+    const { id, tabledata } = input;
+
+    if (!tabledata) {
+      throw new Error('No tabledata provided'); // Ensure tabledata is available
+    }
+
+    // Update the table with the new data
+    return await ctx.db.table.update({
+      where: { id },
+      data: {
+        tabledata,  // Save the array (or object) directly to the JSON column
+      },
+    });
+  }),
 
   /**
    * Delete a table by ID
