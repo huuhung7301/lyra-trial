@@ -44,26 +44,23 @@ export function DataTable({ tableId }: DataTableProps) {
 
   // Update data when tableData is available
   useEffect(() => {
-    if (tableData?.tabledata) {
+    if (tableData?.tabledata && Array.isArray(tableData.tabledata)) {
       try {
-        // Parse tabledata from JSON string to array
-        const parsedData = (tableData.tabledata as Array<Object>);
-
-        // Format the parsed data to match Task structure
-        const formattedData: Task[] = parsedData.map((task: any, index: number) => ({
-          id: (index + 1).toString(), // Manually assign an incrementing id
-          name: task.name,
-          notes: task.notes,
-          assignee: task.assignee,
-          status: task.status,
+        const parsedData = tableData.tabledata as Array<Partial<Task>>;
+        const formattedData: Task[] = parsedData.map((task, index) => ({
+          id: (index + 1).toString(),
+          name: task.name ?? `Task ${index + 1}`,
+          notes: task.notes ?? "",
+          assignee: task.assignee ?? "",
+          status: task.status ?? "Pending",
         }));
-
-        setData(formattedData); // Set the parsed table data
+        setData(formattedData);
       } catch (error) {
-        console.error("Error parsing tabledata JSON:", error);
+        console.error("Error formatting table data:", error);
       }
     }
   }, [tableData]);
+  
   const updateData = useCallback(
     (rowIndex: number, columnId: string, value: string | number) => {
       setData((prev) => {
