@@ -42,7 +42,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
       setValue(value); // Update the value in the parent component
 
       // Wait for `setValue` to complete before triggering navigation
-      setTimeout(triggerNavigation, 1000);
+      setTimeout(triggerNavigation, 0);
     }
   };
   return (
