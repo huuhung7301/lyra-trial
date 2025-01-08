@@ -89,7 +89,7 @@ export function HomeContent() {
       id: item.id.toString(), // Convert id to string
       lastOpened: new Date(item.lastopened), // Ensure the date is properly formatted
       icon: item.title.slice(0, 2), // Assuming first two letters for icon
-      tables: item.tables && item.tables[0] ? [{ id: item.tables[0].id.toString() }] : []
+      tables: item.tables?.[0] ? [{ id: item.tables[0].id.toString() }] : []
     }))
   );
   console.log("recentItems", recentItems)
