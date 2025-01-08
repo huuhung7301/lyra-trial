@@ -5,13 +5,14 @@ interface BaseCardProps {
   title: string;
   type: string;
   icon: string;
+  firstTableId: string;
 }
 
-export function BaseCard({ baseId, title, type, icon }: BaseCardProps) {
+export function BaseCard({ baseId, title, type, icon, firstTableId }: BaseCardProps) {
   const router = useRouter();
 
   const handleClick = () => {
-    router.push(`/${baseId}`);
+    router.push(`${firstTableId}-${baseId}`);
   };
   return (
     <div

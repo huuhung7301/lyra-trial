@@ -15,6 +15,7 @@ interface RecentItem {
   workspace: string;
   lastOpened: Date;
   icon: string;
+  tables: { id: string }[];
 }
 
 const actionCards = [
@@ -88,8 +89,10 @@ export function HomeContent() {
       id: item.id.toString(), // Convert id to string
       lastOpened: new Date(item.lastopened), // Ensure the date is properly formatted
       icon: item.title.slice(0, 2), // Assuming first two letters for icon
+      tables: item.tables && item.tables[0] ? [{ id: item.tables[0].id.toString() }] : []
     }))
   );
+  console.log("recentItems", recentItems)
   const formattedRecentItems = recentItems.map((item) => ({
     ...item,
     id: item.id.toString(), // Ensure id is string for NavBar

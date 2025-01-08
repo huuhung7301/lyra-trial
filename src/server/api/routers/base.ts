@@ -10,8 +10,17 @@ export const baseRouter = createTRPCRouter({
    * Get all bases with their related tables
    */
   getAllBases: publicProcedure.query(async ({ ctx }) => {
-    return await ctx.db.base.findMany({});
+    return await ctx.db.base.findMany({
+      include: {
+        tables: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
   }),
+  
 
   /**
    * Get a specific base by ID

@@ -7,6 +7,7 @@ interface TimeSectionProps {
     title: string;
     type: string;
     icon: string;
+    tables: Array<{ id: string }>; // Assuming `tables` is an array of objects with an `id` field
   }>;
   isSidebarOpen: boolean; // Add isSidebarOpen as a prop
 }
@@ -20,15 +21,21 @@ export function TimeSection({ title, bases, isSidebarOpen }: TimeSectionProps) {
       <div
         className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${isSidebarOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}
       >
-        {bases.map((base) => (
-          <BaseCard
-            key={base.id}
-            baseId={base.id}
-            title={base.title}
-            type={base.type}
-            icon={base.icon}
-          />
-        ))}
+        {bases.map((base) => {
+          // Get the first tableId (if available)
+          const firstTableId = base.tables[0] ? base.tables[0].id : null;
+          if (!firstTableId) return null;
+          return (
+            <BaseCard
+              key={base.id}
+              baseId={base.id}
+              title={base.title}
+              type={base.type}
+              icon={base.icon}
+              firstTableId={firstTableId} // Pass the first tableId here
+            />
+          );
+        })}
       </div>
     </div>
   );
