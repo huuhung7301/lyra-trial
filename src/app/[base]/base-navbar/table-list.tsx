@@ -13,10 +13,9 @@ interface Table {
 interface TableListProps {
   tables: Table[]; // Pass tables as a prop
   selectedTableId: string;
-  setSelectedTableId: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export function TableList({ tables, selectedTableId, setSelectedTableId }: TableListProps) {
+export function TableList({ tables, selectedTableId }: TableListProps) {
   // If the tables array is empty, initialize with a default table
   const defaultTable: Table[] = tables.length === 0 ? [{ id: "1", name: "Table 1" }] : tables;
   
@@ -29,7 +28,7 @@ export function TableList({ tables, selectedTableId, setSelectedTableId }: Table
             {/* Render button only if the table is not selected */}
             {selectedTableId !== table.id ? (
               <div
-                onClick={() => setSelectedTableId(table.id)}
+                onClick={() => {}}
                 className="cursor-pointer bg-transparent py-2 text-[#ebded9] hover:bg-[#6f3b29]"
               >
                 <a className="border-r border-[#95604f] px-4 py-0">

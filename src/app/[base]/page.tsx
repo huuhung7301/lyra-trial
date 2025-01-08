@@ -1,7 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import { BaseNavBar } from "./base-navbar/base-navbar";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import BaseSideBar from "./base-navbar/base-sidebar";
 import { DataTable } from "./table/table";
 import { api } from "~/trpc/react"; // Import your TRPC API client
@@ -11,7 +11,9 @@ export default function BasePage() {
 
   // Ensure base is a valid string
   const baseParam = typeof params.base === "string" ? params.base : undefined;
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+  
   // If base is not valid, return null (or you can render an error message)
   if (!baseParam) {
     return <div>Invalid base parameter</div>;
@@ -24,8 +26,6 @@ export default function BasePage() {
     return <div>Invalid base or table ID</div>;
   }
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [selectedTableId, setSelectedTableId] = useState<string>(tableId);
   // Fetch tables using TRPC query
   const {
     data: baseData,
@@ -69,13 +69,12 @@ export default function BasePage() {
           setIsSidebarOpen={setIsSidebarOpen}
           tables={tables}
           selectedTableId={tableId} // Pass selectedTableId
-          setSelectedTableId={setSelectedTableId} // Pass setSelectedTableId
         />
       </div>
       {sidebar}
       <div className={`${isSidebarOpen ? "ml-[20%]" : ""} transition-all`}>
         {/* Pass tables to DataTable or display them as needed */}
-        <DataTable tableId={selectedTableId} />
+        <DataTable tableId={tableId} />
       </div>
     </main>
   );

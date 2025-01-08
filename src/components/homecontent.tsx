@@ -1,12 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { NavBar } from "~/components/navbar-main";
 import { ActionCard } from "@/components/home/action-card";
 import { FilterSection } from "@/components/home/filter-section";
 import { TimeSection } from "@/components/home/time-section";
 import { SidebarNav } from "~/components/sidebar-nav/sidebar-nav";
 import { Sparkles, Grid, ArrowUpCircle, Table } from "lucide-react";
-
+import { api } from "~/trpc/react";
 // Dummy data (no changes to this data)
 interface RecentItem {
   id: string;
@@ -76,44 +76,34 @@ function filterItemsByDate(recentItems: RecentItem[]) {
 
 export function HomeContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
-
   const paddingLeftStyle = isSidebarOpen ? { paddingLeft: "15%" } : {};
 
-  // Fetch the data from the API
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const response = await fetch("/api/trpc/base.getAllBases");
-        const data = await response.json();
+  // Use tRPC to fetch recent items
+  const { data: recentItems = [], isLoading } = api.base.getAllBases.useQuery();
 
-        // Format the data to match the RecentItem type
-        const formattedData = data.result.data.json.map((item: any) => ({
-          id: item.id.toString(),
-          title: item.title,
-          type: item.type,
-          workspace: item.workspace,
-          lastOpened: new Date(item.lastopened),
-          icon: item.title.slice(0, 2), // Assuming first two letters for icon
-        }));
+  // Filter items by date if data is available
+  const { todayBases, pastWeekBases, pastMonthBases } = filterItemsByDate(
+    recentItems.map((item) => ({
+      ...item,
+      id: item.id.toString(), // Convert id to string
+      lastOpened: new Date(item.lastopened), // Ensure the date is properly formatted
+      icon: item.title.slice(0, 2), // Assuming first two letters for icon
+    }))
+  );
+  const formattedRecentItems = recentItems.map((item) => ({
+    ...item,
+    id: item.id.toString(), // Ensure id is string for NavBar
+  }));
 
-        setRecentItems(formattedData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    }
-
-    fetchData();
-  }, []);
-
-  // Filter items by date
-  const { todayBases, pastWeekBases, pastMonthBases } = filterItemsByDate(recentItems);
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>
       <div className="fixed left-0 top-0 z-20 w-full border-b bg-white">
         <NavBar
-          recentItems={recentItems}
+          recentItems={formattedRecentItems}
           isSidebarOpen={isSidebarOpen}
           setIsSidebarOpen={setIsSidebarOpen}
         />
