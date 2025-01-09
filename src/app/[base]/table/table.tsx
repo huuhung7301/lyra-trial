@@ -125,7 +125,7 @@ export function DataTable({ tableId }: DataTableProps) {
   useEffect(() => {
     const interval = setInterval(() => {
       saveTable(); // Save periodically (e.g., every 10 seconds)
-    }, 2000);
+    }, 100000);
 
     return () => clearInterval(interval); // Cleanup on unmount
   }, [saveTable]);
@@ -185,14 +185,14 @@ export function DataTable({ tableId }: DataTableProps) {
           nextColumnIndex = currentColumnIndex + 1;
         }
       }
-
       // Find the next column ID
       const nextColumnId = editableColumns[nextColumnIndex];
-
       // Find the next cell and focus it
       const nextCell = tableRef.current?.querySelector(
         `tr:nth-child(${nextRowIndex + 1}) td[data-column-id="${nextColumnId}"] input`,
       ) as HTMLInputElement | null;
+      console.log("keys:",nextRowIndex ,"-", nextColumnId)
+      console.log("Table Ref Current:", tableRef.current);
 
       nextCell?.focus();
     },
@@ -280,7 +280,7 @@ export function DataTable({ tableId }: DataTableProps) {
           className="overflow-y-auto"
           style={{ height: "500px", width: "100%" }}
         >
-          <table className="text table-auto border-collapse">
+          <table className="text table-auto border-collapse" ref={tableRef}>
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id} className="bg-[#f4f4f4]">
