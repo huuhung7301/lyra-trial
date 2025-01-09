@@ -34,7 +34,18 @@ const EditableCell: React.FC<EditableCellProps> = ({
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     const triggerNavigation = () => {
-      onNavigate(rowIndex, columnId, e.key as any);
+      onNavigate(
+        rowIndex,
+        columnId,
+        e.key as
+          | "Tab"
+          | "ShiftTab"
+          | "Enter"
+          | "ArrowUp"
+          | "ArrowDown"
+          | "ArrowLeft"
+          | "ArrowRight"
+      );
     };
 
     if (["Tab", "ShiftTab", "Enter", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {

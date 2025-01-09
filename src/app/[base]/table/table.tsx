@@ -40,12 +40,12 @@ export function DataTable({ tableId }: DataTableProps) {
 
   const add15kRow = () => {
     // Generate 15,000 new rows of data using faker.js
-    const newData = Array.from({ length: 5000 }, () => ({
-      id: faker.number.int, // Use uuid as a property, not a function
-      name: faker.person.firstName(),
-      notes: faker.lorem.sentence(),
-      assignee: faker.person.lastName(),
-      status: faker.helpers.arrayElement(["Active", "Inactive", "Pending"]),
+    const newData = Array.from({ length: 15000 }, () => ({
+      id: faker.number.int(), // Call the method to generate a number
+      name: faker.person.firstName(), // Call the method to generate a first name
+      notes: faker.lorem.sentence(), // Call the method to generate a sentence
+      assignee: faker.person.lastName(), // Call the method to generate a last name
+      status: faker.helpers.arrayElement(["Active", "Inactive", "Pending"]), // Call to select an array element
     }));
 
     setData(newData); // Replace the old data with the newly generated data
@@ -123,12 +123,21 @@ export function DataTable({ tableId }: DataTableProps) {
     [],
   );
   useEffect(() => {
+    const saveTablePeriodically = async () => {
+      try {
+        await saveTable(); // Await the promise to handle it properly
+      } catch (error) {
+        console.error("Failed to save table:", error);
+      }
+    };
+  
     const interval = setInterval(() => {
-      saveTable(); // Save periodically (e.g., every 10 seconds)
-    }, 100000);
-
+      saveTablePeriodically(); // Call the async function
+    }, 10000); // 10 seconds
+  
     return () => clearInterval(interval); // Cleanup on unmount
   }, [saveTable]);
+  
 
   const handleCellNavigation = useCallback(
     (
@@ -191,7 +200,7 @@ export function DataTable({ tableId }: DataTableProps) {
       const nextCell = tableRef.current?.querySelector(
         `tr:nth-child(${nextRowIndex + 1}) td[data-column-id="${nextColumnId}"] input`,
       ) as HTMLInputElement | null;
-      console.log("keys:",nextRowIndex ,"-", nextColumnId)
+      console.log("keys:", nextRowIndex, "-", nextColumnId);
       console.log("Table Ref Current:", tableRef.current);
 
       nextCell?.focus();
@@ -240,16 +249,21 @@ export function DataTable({ tableId }: DataTableProps) {
     status: <Circle className="h-4 w-4" />,
   };
 
-  const addColumn = (name: string, type: string) => {
+  const addColumn = async (name: string, type: string) => {
     setData((prevData) =>
       prevData.map((row) => ({
         ...row,
         [name.toLowerCase().replace(/\s+/g, "_")]: "",
       })),
     );
-    saveTable();
+    try {
+      await saveTable(); // Await the promise
+    } catch (error) {
+      console.error("Failed to save table:", error);
+    }
   };
-  const addRow = () => {
+
+  const addRow = async () => {
     if (!data[0]) return;
 
     const newRow = Object.keys(data[0]).reduce(
@@ -260,10 +274,14 @@ export function DataTable({ tableId }: DataTableProps) {
         };
       },
       { id: data.length + 1 },
-    ); // Add the id directly here.
+    );
 
     setData((prevData) => [...prevData, newRow]);
-    saveTable();
+    try {
+      await saveTable(); // Await the promise
+    } catch (error) {
+      console.error("Failed to save table:", error);
+    }
   };
 
   console.log("aaa", data);
