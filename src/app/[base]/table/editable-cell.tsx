@@ -6,6 +6,7 @@ interface EditableCellProps {
   columnId: string;
   setValue: (newValue: string) => void;
   onNavigate: (rowIndex: number, columnId: string, key: 'Tab' | 'ShiftTab' | 'Enter' | 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight') => void;
+  searchQuery: string;
 }
 
 const EditableCell: React.FC<EditableCellProps> = ({
@@ -14,10 +15,13 @@ const EditableCell: React.FC<EditableCellProps> = ({
   columnId,
   setValue,
   onNavigate,
+  searchQuery,
 }) => {
   const initialValue = getValue() as string;
   const [value, setLocalValue] = useState<string>(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const isHighlighted = searchQuery != "" && value && typeof value === "string" && value.toLowerCase().includes(searchQuery.toLowerCase());
 
   useEffect(() => {
     setLocalValue(initialValue);
@@ -56,15 +60,16 @@ const EditableCell: React.FC<EditableCellProps> = ({
       setTimeout(triggerNavigation, 0);
     }
   };
+  const inputClassName = isHighlighted ? "bg-yellow-200" : "bg-transparent";
   return (
-    <input
-      ref={inputRef}
-      value={value}
-      onChange={handleChange}
-      onBlur={handleBlur} // Trigger setValue when input loses focus
-      onKeyDown={handleKeyDown}
-      className="w-full bg-transparent p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
+      <input
+        value={value}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
+        style={{ width: "100%" }}
+        className={`w-full ${inputClassName} focus:outline-none focus:ring-2 focus:ring-blue-500 p-2`} 
+      />
   );
 };
 

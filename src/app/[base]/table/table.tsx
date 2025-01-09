@@ -15,6 +15,7 @@ import type { ColumnDef, ColumnResizeMode } from "@tanstack/react-table";
 import { api } from "~/trpc/react";
 import { faker } from "@faker-js/faker";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import SearchModal from "./search-modal";
 
 const defaultData: object[] = Array.from({ length: 4 }, (_, i) => ({
   id: `i + 1`,
@@ -37,6 +38,26 @@ export function DataTable({ tableId }: DataTableProps) {
   const tableIdNum = tableId ? parseInt(tableId) : null;
   const lastSavedData = useRef(data); // Keep track of the last saved data
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === "f") {
+      e.preventDefault();
+      setIsSearchModalOpen(true); // Open modal when Ctrl + F is pressed
+    }
+  };
+
+  // Add event listener when the component mounts
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   const add15kRow = () => {
     // Generate 15,000 new rows of data using faker.js
@@ -122,7 +143,7 @@ export function DataTable({ tableId }: DataTableProps) {
     },
     [],
   );
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
       void saveTable(); // Explicitly ignore the promise to satisfy the linter
@@ -214,10 +235,11 @@ export function DataTable({ tableId }: DataTableProps) {
           columnId={key}
           setValue={(value) => updateData(row.index, key, value)}
           onNavigate={handleCellNavigation}
+          searchQuery={searchQuery}
         />
       ),
     }));
-  }, [data, updateData, handleCellNavigation]);
+  }, [data, searchQuery, updateData, handleCellNavigation]);
 
   const table = useReactTable({
     data,
@@ -278,152 +300,167 @@ export function DataTable({ tableId }: DataTableProps) {
 
   console.log("aaa", data);
   return (
-    <div>
+    <div className="relative">
+      <div className="absolute right-0 top-0 z-50 w-[25%]">
+        <SearchModal
+          isOpen={isSearchModalOpen}
+          onClose={() => setIsSearchModalOpen(false)} // Close modal
+          onSearch={handleSearch} // Handle the search query from the modal
+          searchQuery={searchQuery} // Pass the current search query
+        />
+      </div>
       <AddColumnModal
         open={isAddColumnModalOpen}
         onOpenChange={setIsAddColumnModalOpen}
         onAddColumn={addColumn}
       />
       <div className="flex items-start overflow-auto rounded-lg">
-        <div
-          ref={tableContainerRef}
-          className="overflow-y-auto"
-          style={{ height: "500px", width: "100%" }}
-        >
-          <table className="text table-auto border-collapse" ref={tableRef}>
-            <thead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id} className="bg-[#f4f4f4]">
-                  {headerGroup.headers.map((header) => {
-                    const columnId = header.column.id;
-                    const icon = headerIcons[columnId] ?? null;
+        <div>
+          <div
+            ref={tableContainerRef}
+            className="flex overflow-y-auto"
+            style={{ height: "500px", width: "100%" }}
+          >
+            <table className="text table-auto border-collapse" ref={tableRef}>
+              <thead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id} className="bg-[#f4f4f4]">
+                    {headerGroup.headers.map((header) => {
+                      const columnId = header.column.id;
+                      const icon = headerIcons[columnId] ?? null;
 
-                    return (
-                      <th
-                        key={header.id}
-                        className="relative p-2"
-                        style={{
-                          width: header.getSize(),
-                        }}
-                      >
-                        {columnId === "id" ? (
-                          <div className="flex items-center justify-center">
-                            <input type="checkbox" className="h-4 w-4" />
-                          </div>
-                        ) : (
-                          <div className="w-full">
-                            <Dropdown
-                              id={header.id}
-                              type="table"
-                              className="ml-1"
-                              justifyOption="between"
-                            >
-                              <div className="flex items-center gap-2 text-sm font-normal">
-                                {icon && <span>{icon}</span>}
-                                <span>
-                                  {header.column.columnDef.header as string}
-                                </span>
-                              </div>
-                            </Dropdown>
-                          </div>
-                        )}
-
-                        <div
-                          onMouseDown={header.getResizeHandler()}
-                          onTouchStart={header.getResizeHandler()}
-                          className="absolute right-0 top-0 h-full w-[1px] cursor-col-resize touch-none select-none bg-gray-200"
+                      return (
+                        <th
+                          key={header.id}
+                          className="relative p-2"
                           style={{
-                            transform: "translateX(50%)",
+                            width: header.getSize(),
                           }}
                         >
-                          <div className="absolute -left-0.5 -right-0.5 bottom-1 top-1 rounded bg-transparent hover:bg-blue-500"></div>
-                        </div>
-                      </th>
-                    );
-                  })}
-                </tr>
-              ))}
-            </thead>
-            <tbody
-              style={{
-                position: "relative",
-                height: `${rowVirtualizer.getTotalSize()}px`, // Total height of all rows
-              }}
-            >
-              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                const row = table.getRowModel().rows[virtualRow.index];
-                if (row)
-                  return (
-                    <tr
-                      key={row.id}
-                      className="group"
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        transform: `translateY(${virtualRow.start}px)`, // Position the row
-                        width: "100%", // Ensure full width
-                      }}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <td
-                          key={cell.id}
-                          className="relative border px-8"
-                          data-column-id={cell.column.id}
-                        >
-                          {cell.column.id === "id" ? (
-                            <>
-                              <div className="absolute inset-0 flex items-center justify-center opacity-100 transition-opacity group-hover:opacity-0">
-                                {row.index + 1}
-                              </div>
-                              <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-                                <input
-                                  type="checkbox"
-                                  className="h-4 w-4"
-                                  checked={checkedRows.has(row.id)}
-                                  onChange={() => {
-                                    setCheckedRows((prev) => {
-                                      const newCheckedRows = new Set(prev);
-                                      if (newCheckedRows.has(row.id)) {
-                                        newCheckedRows.delete(row.id);
-                                      } else {
-                                        newCheckedRows.add(row.id);
-                                      }
-                                      return newCheckedRows;
-                                    });
-                                  }}
-                                />
-                              </div>
-                            </>
+                          {columnId === "id" ? (
+                            <div className="flex items-center justify-center">
+                              <input type="checkbox" className="h-4 w-4" />
+                            </div>
                           ) : (
-                            flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )
+                            <div className="w-full">
+                              <Dropdown
+                                id={header.id}
+                                type="table"
+                                className="ml-1"
+                                justifyOption="between"
+                              >
+                                <div className="flex items-center gap-2 text-sm font-normal">
+                                  {icon && <span>{icon}</span>}
+                                  <span>
+                                    {header.column.columnDef.header as string}
+                                  </span>
+                                </div>
+                              </Dropdown>
+                            </div>
                           )}
-                        </td>
-                      ))}
-                    </tr>
-                  );
-              })}
-            </tbody>
-          </table>
-        </div>
-        <Button
-          onClick={() => setIsAddColumnModalOpen(true)}
-          className="flex items-center gap-2 bg-[#f4f4f4] px-12"
-        >
-          <PlusIcon className="h-6 w-6" />
-        </Button>
-      </div>
 
-      <div>
-        <button
-          onClick={add15kRow}
-          className="absolute bottom-[5%] left-[20%] rounded-full bg-white px-4 py-2 text-black"
-        >
-          <PlusIcon />
-        </button>
+                          <div
+                            onMouseDown={header.getResizeHandler()}
+                            onTouchStart={header.getResizeHandler()}
+                            className="absolute right-0 top-0 h-full w-[1px] cursor-col-resize touch-none select-none bg-gray-200"
+                            style={{
+                              transform: "translateX(50%)",
+                            }}
+                          >
+                            <div className="absolute -left-0.5 -right-0.5 bottom-1 top-1 rounded bg-transparent hover:bg-blue-500"></div>
+                          </div>
+                        </th>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </thead>
+              <tbody
+                style={{
+                  position: "relative",
+                }}
+              >
+                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const row = table.getRowModel().rows[virtualRow.index];
+                  if (row)
+                    return (
+                      <tr
+                        key={row.id}
+                        className="group"
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          transform: `translateY(${virtualRow.start}px)`, // Position the row
+                          width: "100%", // Ensure full width
+                        }}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <td
+                            key={cell.id}
+                            className="relative border"
+                            data-column-id={cell.column.id}
+                          >
+                            {cell.column.id === "id" ? (
+                              <div className="px-7">
+                                <div className="absolute inset-0 flex items-center justify-center opacity-100 transition-opacity group-hover:opacity-0">
+                                  {row.index + 1}
+                                </div>
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+                                  <input
+                                    type="checkbox"
+                                    className="h-4 w-4"
+                                    checked={checkedRows.has(row.id)}
+                                    onChange={() => {
+                                      setCheckedRows((prev) => {
+                                        const newCheckedRows = new Set(prev);
+                                        if (newCheckedRows.has(row.id)) {
+                                          newCheckedRows.delete(row.id);
+                                        } else {
+                                          newCheckedRows.add(row.id);
+                                        }
+                                        return newCheckedRows;
+                                      });
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext(),
+                              )
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                })}
+              </tbody>
+            </table>
+            <Button
+              onClick={() => setIsAddColumnModalOpen(true)}
+              className="flex items-center gap-2 bg-[#f4f4f4] px-14"
+            >
+              <PlusIcon className="h-6 w-6" />
+            </Button>
+          </div>
+          <div>
+            <Button
+              onClick={() => setIsAddColumnModalOpen(true)}
+              className="flex items-center gap-2 bg-[#f4f4f4] px-4"
+            >
+              <PlusIcon className="h-6 w-6" />
+            </Button>
+            <Button
+              onClick={add15kRow}
+              className="flex items-center gap-2 bg-[#f4f4f4] px-4 ml-4"
+            >
+              <PlusIcon className="h-6 w-6" />
+              Add 15k rows
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
