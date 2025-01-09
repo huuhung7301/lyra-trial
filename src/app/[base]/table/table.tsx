@@ -122,22 +122,14 @@ export function DataTable({ tableId }: DataTableProps) {
     },
     [],
   );
+  
   useEffect(() => {
-    const saveTablePeriodically = async () => {
-      try {
-        await saveTable(); // Await the promise to handle it properly
-      } catch (error) {
-        console.error("Failed to save table:", error);
-      }
-    };
-  
     const interval = setInterval(() => {
-      saveTablePeriodically(); // Call the async function
-    }, 10000); // 10 seconds
-  
+      void saveTable(); // Explicitly ignore the promise to satisfy the linter
+    }, 10000); // Adjusted to 10,000 ms (10 seconds) for consistency with the comment
+
     return () => clearInterval(interval); // Cleanup on unmount
   }, [saveTable]);
-  
 
   const handleCellNavigation = useCallback(
     (
