@@ -46,16 +46,20 @@ export function DataTable() {
     setSearchQuery(query);
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = async (e: KeyboardEvent) => {
+    // Handle Ctrl + F for opening the search modal
     if (e.ctrlKey && e.key === "f") {
       e.preventDefault();
       setIsSearchModalOpen(true); // Open modal when Ctrl + F is pressed
     }
+  
+    // Handle Ctrl + S for saving the table
     if (e.ctrlKey && e.key === "s") {
       e.preventDefault();
-      saveTable();
+      await saveTable(); // Assuming saveTable is an async function
     }
   };
+  
 
   // Add event listener when the component mounts
   useEffect(() => {
