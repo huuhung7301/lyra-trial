@@ -18,6 +18,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import SearchModal from "./search-modal";
 import { useViewContext } from "../view-context";
 import { processData } from "./processData";
+import { useParams } from "next/navigation";
 
 const defaultData: object[] = Array.from({ length: 4 }, (_, i) => ({
   id: `i + 1`,
@@ -27,22 +28,19 @@ const defaultData: object[] = Array.from({ length: 4 }, (_, i) => ({
   status: "",
 }));
 
-interface DataTableProps {
-  tableId: string | null;
-}
-
-export function DataTable({ tableId }: DataTableProps) {
+export function DataTable() {
   const [data, setData] = useState(defaultData); // Type is inferred from defaultData
   const [columnResizeMode] = useState<ColumnResizeMode>("onChange");
   const tableRef = useRef<HTMLTableElement>(null);
   const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false);
   const [checkedRows, setCheckedRows] = useState<Set<string>>(new Set());
-  const tableIdNum = tableId ? parseInt(tableId) : null;
   const lastSavedData = useRef(data); // Keep track of the last saved data
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const { viewData } = useViewContext();
+  const params = useParams<{ base?: string | string[] }>(); // Account for base being string or string[]
+  const baseParam = typeof params.base === "string" ? params.base : undefined;
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -63,6 +61,18 @@ export function DataTable({ tableId }: DataTableProps) {
     };
   }, []);
 
+  // If base is not valid, return null (or you can render an error message)
+  if (!baseParam) {
+    return <div>Invalid base parameter</div>;
+  }
+
+  // Split the baseParam into baseId and tableId
+  const [baseId, tableId, viewId] = baseParam.split("-");
+
+  if (!baseId || !tableId || !viewId) {
+    return <div>Invalid base or table ID</div>;
+  }
+  const tableIdNum = tableId ? parseInt(tableId) : null;
   const add15kRow = () => {
     // Generate 15,000 new rows of data using faker.js
     const newData = Array.from({ length: 15000 }, () => ({
@@ -132,8 +142,8 @@ export function DataTable({ tableId }: DataTableProps) {
     } catch (error) {
       console.error("Error saving table data:", error);
     }
-    if(data){
-      console.log("Processed data", processData(data, viewData))
+    if (data) {
+      console.log("Processed data", processData(data, viewData));
     }
   }, [data, tableId, updateTable]);
 
@@ -149,7 +159,6 @@ export function DataTable({ tableId }: DataTableProps) {
       });
     },
     [],
-    
   );
 
   useEffect(() => {
@@ -233,11 +242,10 @@ export function DataTable({ tableId }: DataTableProps) {
     // Cast data to Record<string, unknown>[] if needed
     return processData(data, viewData) as Record<string, unknown>[];
   }, [data, viewData]);
-  
 
   const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(() => {
     if (!processedData[0]) return [];
-  
+
     return Object.keys(processedData[0]).map((key, index) => ({
       accessorKey: key,
       header: key.charAt(0).toUpperCase() + key.slice(1),
@@ -254,9 +262,6 @@ export function DataTable({ tableId }: DataTableProps) {
       ),
     }));
   }, [data, searchQuery, updateData, handleCellNavigation, processedData]);
-  
-
-
 
   const table = useReactTable<Record<string, unknown>>({
     data: processedData, // Ensure data type matches
@@ -265,7 +270,6 @@ export function DataTable({ tableId }: DataTableProps) {
     enableColumnResizing: true,
     columnResizeMode,
   });
-  
 
   const rowVirtualizer = useVirtualizer({
     count: table.getRowModel().rows.length,
@@ -317,7 +321,7 @@ export function DataTable({ tableId }: DataTableProps) {
   };
 
   console.log("aaa", data);
-  console.log("bbb", processedData)
+  console.log("bbb", processedData);
   return (
     <div className="relative">
       <div className="absolute right-0 top-0 z-50 w-[25%]">
@@ -473,7 +477,7 @@ export function DataTable({ tableId }: DataTableProps) {
             </Button>
             <Button
               onClick={add15kRow}
-              className="flex items-center gap-2 bg-[#f4f4f4] px-4 ml-4"
+              className="ml-4 flex items-center gap-2 bg-[#f4f4f4] px-4"
             >
               <PlusIcon className="h-6 w-6" />
               Add 15k rows

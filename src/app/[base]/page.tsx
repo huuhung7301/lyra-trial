@@ -4,9 +4,7 @@ import { BaseNavBar } from "./base-navbar/base-navbar";
 import React, { useState } from "react";
 import BaseSideBar from "./base-navbar/base-sidebar";
 import { DataTable } from "./table/table";
-import { api } from "~/trpc/react"; // Import your TRPC API client
 import { ViewProvider } from "./view-context";
-import Loading from "@/components/ui/loading";
 
 export default function BasePage() {
   const params = useParams<{ base?: string | string[] }>(); // Account for base being string or string[]
@@ -27,34 +25,6 @@ export default function BasePage() {
     return <div>Invalid base or table ID</div>;
   }
 
-  // Fetch tables using TRPC query
-  const {
-    data: baseData,
-    isLoading,
-    isError,
-  } = api.base.getBaseById.useQuery(
-    { id: Number(baseId) }, // Pass the base ID as a query parameter
-    {
-      enabled: !!baseId, // Ensure the query only runs when `base` is available
-    },
-  );
-
-  // Handle loading and error states
-  if (isLoading) {
-    return <Loading/>;
-  }
-
-  if (isError) {
-    return <div>Error loading base data</div>;
-  }
-
-  // Access the tables from the fetched data
-  const tables =
-    baseData?.tables?.map((table) => ({
-      id: table.id.toString(),
-      name: table.name,
-    })) ?? [];
-
   // Conditional rendering of the sidebar based on isSidebarOpen
   const sidebar = isSidebarOpen && (
     <div className="fixed left-0 top-[19.5%] z-10 h-[80%] w-1/5 border-r bg-white">
@@ -73,7 +43,7 @@ export default function BasePage() {
           />
           <div className={`${isSidebarOpen ? "ml-[20%]" : ""} transition-all`}>
             {/* DataTable is also wrapped by ViewProvider */}
-            <DataTable tableId={tableId} />
+            <DataTable />
           </div>
         </ViewProvider>
       </div>

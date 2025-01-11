@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { ChevronDown, Trash2, MoreHorizontal, X } from "lucide-react";
 import { useViewContext } from "../view-context";
 import { JsonValue } from "type-fest";

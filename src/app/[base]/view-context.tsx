@@ -16,7 +16,7 @@ export interface ViewContextData {
   columns: string[]; // List of column names (keys)
   isLoading: boolean;
   isError: boolean;
-  updateViewData: (updatedViewData: ViewContextData["viewData"]) => Promise<void>; // Change this to return a Promise
+  updateViewData: (updatedViewData: ViewContextData["viewData"]) => Promise<void>;
 }
 
 const ViewContext = createContext<ViewContextData>({
