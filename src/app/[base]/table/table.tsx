@@ -69,9 +69,6 @@ export function DataTable() {
   // Split the baseParam into baseId and tableId
   const [baseId, tableId, viewId] = baseParam.split("-");
 
-  if (!baseId || !tableId || !viewId) {
-    return <div>Invalid base or table ID</div>;
-  }
   const tableIdNum = tableId ? parseInt(tableId) : null;
   const add15kRow = () => {
     // Generate 15,000 new rows of data using faker.js
