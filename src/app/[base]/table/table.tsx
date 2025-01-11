@@ -54,14 +54,20 @@ export function DataTable() {
   
     if (e.ctrlKey && e.key === "s") {
       e.preventDefault();
-      handleSaveTable(); // Call the async function to save the table
+      // Use `void` to indicate you're deliberately not handling the promise here
+      void handleSaveTable(); // Ignore the promise
     }
   };
   
   // Separate async function for saving the table
   const handleSaveTable = async () => {
-    await saveTable(); // Assuming saveTable is an async function
+    try {
+      await saveTable();
+    } catch (error) {
+      console.error("Error saving table:", error);
+    }
   };
+  
   
   
 
