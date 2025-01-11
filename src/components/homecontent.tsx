@@ -96,7 +96,6 @@ export function HomeContent() {
       firstViewId: item.tables?.[0]?.views?.[0]?.id ?? 0,
     }))
   );
-  console.log("recentItems", recentItems)
   const formattedRecentItems = recentItems.map((item) => ({
     ...item,
     id: item.id, // Ensure id is string for NavBar

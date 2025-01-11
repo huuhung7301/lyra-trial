@@ -36,11 +36,6 @@ export function processData(
   
     const { filters, sorting, hiddenFields } = viewData;
   
-    console.log("pre process:", data);
-    console.log("filters", filters);
-    console.log("sorting", sorting);
-    console.log("hiddenFields", hiddenFields);
-  
     const filteredData = data
       .filter((row) => {
         // Apply filters if filters is an array of conditions
@@ -118,7 +113,6 @@ export function processData(
         return row;
       });
   
-    console.log("post process:", filteredData);
     return filteredData;
   }
   

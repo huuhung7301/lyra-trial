@@ -103,8 +103,6 @@ const updateViewData = async (
   }
 };
 
-
-  console.log("View Data", viewData);
   return (
     <ViewContext.Provider
       value={{ viewData, columns, isLoading, isError, updateViewData }}

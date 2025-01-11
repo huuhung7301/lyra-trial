@@ -251,8 +251,7 @@ export function DataTable() {
       const nextCell = tableRef.current?.querySelector(
         `tr:nth-child(${nextRowIndex + 1}) td[data-column-id="${nextColumnId}"] input`,
       ) as HTMLInputElement | null;
-      console.log("keys:", nextRowIndex, "-", nextColumnId);
-      console.log("Table Ref Current:", tableRef.current);
+
 
       nextCell?.focus();
     },
@@ -341,8 +340,6 @@ export function DataTable() {
     }
   };
 
-  console.log("aaa", data);
-  console.log("bbb", processedData);
   return (
     <div className="relative">
       <div className="absolute right-0 top-0 z-50 w-[25%]">
