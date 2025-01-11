@@ -61,11 +61,6 @@ export function DataTable() {
     };
   }, []);
 
-  // If base is not valid, return null (or you can render an error message)
-  if (!baseParam) {
-    return <div>Invalid base parameter</div>;
-  }
-
   // Split the baseParam into baseId and tableId
   const [baseId, tableId, viewId] = baseParam.split("-");
 
