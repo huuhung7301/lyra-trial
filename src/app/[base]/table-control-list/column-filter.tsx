@@ -73,12 +73,11 @@ export default function ColumnFilter() {
     }
   };
   useEffect(() => {
-    const update = async () => {
-      await updateHiddenFields(); // Await the asynchronous function here
-    };
-    update();
+    void (async () => {
+      await updateHiddenFields(); // Now the promise is awaited
+    })();
   }, [fieldStates]);
-  
+
   return (
     <div className="w-[300px] bg-white rounded-lg shadow-lg border">
       <div className="p-3 border-b">
