@@ -47,7 +47,7 @@ export default function ColumnFilter() {
     );
   };
 
-  const updateHiddenFields = () => {
+  const updateHiddenFields = async () => {
     const updatedHiddenFields = fieldStates
       .filter((field) => !field.visible)
       .map((field) => field.name);
@@ -60,7 +60,7 @@ export default function ColumnFilter() {
       };
 
       // Make sure required fields are set
-      updateViewData({
+      await updateViewData({
         id: viewData.id ?? 0, // Use default values if any required fields are missing
         name: viewData.name ?? "Unnamed View",
         createdat: viewData.createdat ?? new Date(),

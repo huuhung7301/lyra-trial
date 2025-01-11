@@ -73,9 +73,9 @@ export default function SortFilter({ onClose }: SortFilterProps) {
     }));
   };
 
-  const handleClose = () => {
+  const handleClose = async () => {
     if (viewData) {
-      updateViewData({
+      await updateViewData({
         ...viewData,
         sorting: convertToJsonValue(sortOptions),
       });

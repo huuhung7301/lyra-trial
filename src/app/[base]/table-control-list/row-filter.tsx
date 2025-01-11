@@ -103,9 +103,9 @@ export default function QueryBuilder({ onClose }: { onClose: () => void }) {
     const newConditions = conditions.filter((_, i) => i !== index);
     setConditions(newConditions);
   };
-  const handleClose = () => {
+  const handleClose = async () => {
     if (viewData) {
-      updateViewData({
+      await updateViewData({
         ...viewData,
         filters: convertToJsonValue(conditions),
       });
