@@ -70,23 +70,37 @@ model VerificationToken {
 
     @@unique([identifier, token])
 }
+
 model Base {
-  id          Int      @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())  // Use auto-incrementing integer for Base id
   title       String
   type        String
   workspace   String
-  createddate DateTime @default(now())
-  lastopened  DateTime @default(now())
+  createddate DateTime   @default(now())
+  lastopened  DateTime   @default(now())
   owner       String
-  tables      Table[]
+  tables      Table[]    // One base can have many tables
 }
 
 model Table {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())  // Use auto-incrementing integer for Table id
   name      String
-  tabledata Json     // This stores your dynamic columns data as JSON
-  createdat DateTime @default(now())
-  updatedat DateTime @updatedAt
-  baseid    Int
-  base      Base     @relation(fields: [baseid], references: [id])
+  tabledata Json        // Stores dynamic column data as JSON
+  createdat DateTime    @default(now())
+  updatedat DateTime    @updatedAt
+  baseid    Int        // Reference to Base (Int type)
+  base      Base       @relation(fields: [baseid], references: [id])  // Relation to Base
+  views     View[]     // One table can have many views
+}
+
+model View {
+  id        Int        @id @default(autoincrement())  // Use auto-incrementing integer for View id
+  name      String
+  filters   Json        // Stores filter configurations for the view
+  sorting   Json        // Stores sorting configurations for the view
+  hiddenFields Json     // Stores hidden fields for the view
+  createdat DateTime    @default(now())
+  updatedat DateTime    @updatedAt
+  tableid   Int         // Reference to Table (Int type)
+  table     Table       @relation(fields: [tableid], references: [id])  // Relation to Table
 }

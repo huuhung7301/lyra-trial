@@ -9,13 +9,14 @@ import { Sparkles, Grid, ArrowUpCircle, Table } from "lucide-react";
 import { api } from "~/trpc/react";
 // Dummy data (no changes to this data)
 interface RecentItem {
-  id: string;
+  id: number;
   title: string;
   type: string;
   workspace: string;
   lastOpened: Date;
   icon: string;
   tables: { id: string }[];
+  firstViewId: number; // Include firstViewId here
 }
 
 const actionCards = [
@@ -86,16 +87,17 @@ export function HomeContent() {
   const { todayBases, pastWeekBases, pastMonthBases } = filterItemsByDate(
     recentItems.map((item) => ({
       ...item,
-      id: item.id.toString(), // Convert id to string
+      id: item.id, // Convert id to string
       lastOpened: new Date(item.lastopened), // Ensure the date is properly formatted
       icon: item.title.slice(0, 2), // Assuming first two letters for icon
-      tables: item.tables?.[0] ? [{ id: item.tables[0].id.toString() }] : []
+      tables: item.tables?.[0] ? [{ id: item.tables[0].id.toString() }] : [],
+      firstViewId: item.tables?.[0]?.views?.[0]?.id ?? 0,
     }))
   );
   console.log("recentItems", recentItems)
   const formattedRecentItems = recentItems.map((item) => ({
     ...item,
-    id: item.id.toString(), // Ensure id is string for NavBar
+    id: item.id, // Ensure id is string for NavBar
   }));
 
   if (isLoading) {

@@ -1,19 +1,35 @@
 import { useRouter } from "next/navigation"; // Import useRouter
+import { useState } from "react"; // Import useState
+import { api } from "~/trpc/react";
 
 interface BaseCardProps {
-  baseId: string;
+  baseId: number;
   title: string;
   type: string;
   icon: string;
   firstTableId: string;
+  firstViewId: number;
 }
 
-export function BaseCard({ baseId, title, type, icon, firstTableId }: BaseCardProps) {
+export function BaseCard({
+  baseId,
+  title,
+  type,
+  icon,
+  firstTableId,
+  firstViewId,
+}: BaseCardProps) {
   const router = useRouter();
 
-  const handleClick = () => {
-    router.push(`${firstTableId}-${baseId}`);
+  // Local state to store firstView data
+
+  // Fetch the viewId dynamically only on click
+  const handleClick = async () => {
+    const extractedBaseId = firstTableId.split("-")[0];
+    router.push(`/${extractedBaseId}-${firstTableId}-${firstViewId}`);
+    return;
   };
+
   return (
     <div
       className="flex items-center gap-4 rounded-lg border bg-white p-6 transition-shadow hover:shadow-md"

@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import BaseSideBar from "./base-navbar/base-sidebar";
 import { DataTable } from "./table/table";
 import { api } from "~/trpc/react"; // Import your TRPC API client
+import { ViewProvider } from "./view-context";
 
 export default function BasePage() {
   const params = useParams<{ base?: string | string[] }>(); // Account for base being string or string[]
@@ -13,16 +14,15 @@ export default function BasePage() {
   const baseParam = typeof params.base === "string" ? params.base : undefined;
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  
   // If base is not valid, return null (or you can render an error message)
   if (!baseParam) {
     return <div>Invalid base parameter</div>;
   }
 
   // Split the baseParam into baseId and tableId
-  const [baseId, tableId] = baseParam.split("-");
+  const [baseId, tableId, viewId] = baseParam.split("-");
 
-  if (!baseId || !tableId) {
+  if (!baseId || !tableId || !viewId) {
     return <div>Invalid base or table ID</div>;
   }
 
@@ -64,18 +64,19 @@ export default function BasePage() {
   return (
     <main>
       <div className="z-50">
-        <BaseNavBar
-          isSidebarOpen={isSidebarOpen}
-          setIsSidebarOpen={setIsSidebarOpen}
-          tables={tables}
-          selectedTableId={tableId} // Pass selectedTableId
-        />
+        {/* Wrap both BaseNavBar and DataTable with ViewProvider once */}
+        <ViewProvider viewId={parseInt(viewId)} tableId={parseInt(tableId)}>
+          <BaseNavBar
+            isSidebarOpen={isSidebarOpen}
+            setIsSidebarOpen={setIsSidebarOpen}
+          />
+          <div className={`${isSidebarOpen ? "ml-[20%]" : ""} transition-all`}>
+            {/* DataTable is also wrapped by ViewProvider */}
+            <DataTable tableId={tableId} />
+          </div>
+        </ViewProvider>
       </div>
       {sidebar}
-      <div className={`${isSidebarOpen ? "ml-[20%]" : ""} transition-all`}>
-        {/* Pass tables to DataTable or display them as needed */}
-        <DataTable tableId={tableId} />
-      </div>
     </main>
   );
 }

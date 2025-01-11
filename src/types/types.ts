@@ -1,5 +1,5 @@
 export interface Base {
-    id: string;
+    id: number;
     title: string;
     type: string;
     workspace: string;

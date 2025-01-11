@@ -10,11 +10,9 @@ import { TableList } from "./table-list";
 interface NavBarProps {
   isSidebarOpen: boolean;
   setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  tables: { id: string; name: string }[]; // Accept tables as a prop
-  selectedTableId: string;
 }
 
-export function BaseNavBar({ isSidebarOpen, setIsSidebarOpen, tables, selectedTableId }: NavBarProps) {
+export function BaseNavBar({ isSidebarOpen, setIsSidebarOpen}: NavBarProps) {
   return (
     <div>
       <div className="sticky top-0 flex h-16 items-center justify-between gap-4 bg-[#944e37] px-4 py-8 text-white">
@@ -38,7 +36,7 @@ export function BaseNavBar({ isSidebarOpen, setIsSidebarOpen, tables, selectedTa
       </div>
       <div>
         {/* Pass the tables to TableList */}
-        <TableList tables={tables} selectedTableId={selectedTableId}/>
+        <TableList />
         <TableControls isSideBarOpen={isSidebarOpen} setIsSideBarOpen={setIsSidebarOpen} />
       </div>
     </div>

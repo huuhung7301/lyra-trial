@@ -3,15 +3,15 @@ import { BaseCard } from "./base-card";
 interface TimeSectionProps {
   title: string;
   bases: Array<{
-    id: string;
+    id: number;
     title: string;
     type: string;
     icon: string;
     tables: Array<{ id: string }>; // Assuming `tables` is an array of objects with an `id` field
+    firstViewId: number;
   }>;
   isSidebarOpen: boolean; // Add isSidebarOpen as a prop
 }
-
 export function TimeSection({ title, bases, isSidebarOpen }: TimeSectionProps) {
   if (bases.length === 0) return null;
 
@@ -25,6 +25,10 @@ export function TimeSection({ title, bases, isSidebarOpen }: TimeSectionProps) {
           // Get the first tableId (if available)
           const firstTableId = base.tables[0] ? base.tables[0].id : null;
           if (!firstTableId) return null;
+
+          // Extract the first viewId from the base (if available)
+          const firstViewId = base.tables[0] ? base.firstViewId : 0; // Default to 0 if not available
+
           return (
             <BaseCard
               key={base.id}
@@ -33,6 +37,7 @@ export function TimeSection({ title, bases, isSidebarOpen }: TimeSectionProps) {
               type={base.type}
               icon={base.icon}
               firstTableId={firstTableId} // Pass the first tableId here
+              firstViewId={firstViewId}   // Pass the first viewId here
             />
           );
         })}

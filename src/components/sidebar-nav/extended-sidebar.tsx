@@ -20,6 +20,8 @@ export function ExtendedSidebar({ isExpanded }: ExtendedSidebarProps) {
   const router = useRouter();
   const createBaseMutation = api.base.createBase.useMutation();
   const createTableMutation = api.table.createTable.useMutation();
+  const createViewMutation = api.view.createView.useMutation();
+
 
   const handleCreate = async () => {
     try {
@@ -30,7 +32,7 @@ export function ExtendedSidebar({ isExpanded }: ExtendedSidebarProps) {
         workspace: "Personal",
         owner: "guest",
       });
-
+  
       // Table data for the new table
       const tableData = [
         { id: 1, name: "", notes: "", assignee: "", status: "" },
@@ -38,24 +40,37 @@ export function ExtendedSidebar({ isExpanded }: ExtendedSidebarProps) {
         { id: 3, name: "", notes: "", assignee: "", status: "" },
         { id: 4, name: "", notes: "", assignee: "", status: "" },
       ];
-
+  
       // Create a table for the new base and capture the newTableId
       const newTable = await createTableMutation.mutateAsync({
         name: "Table 1", // Example name, modify as needed
-        baseid: newBaseId,
-        tabledata: tableData, // Pass the table data
+        baseid: newBaseId, // Make sure baseid is correctly passed as a number
+        tabledata: tableData, // Pass the table data as expected
       });
-
+  
       // Get the newTableId from the newly created table
       const newTableId = newTable.id;
-
-      // Navigate to the new base and table's URL using both the newBaseId and newTableId
-      router.push(`/${newBaseId}-${newTableId}`);
+  
+      // Create a new view for the table
+      const newView = await createViewMutation.mutateAsync({
+        name: "Grid View", // Default name for the view, can be customized
+        filters: {},           // Provide any default filters if needed
+        sorting: {},           // Provide any default sorting if needed
+        hiddenFields: {},      // Provide any default hidden fields if needed
+        tableid: newTableId,   // Associate the view with the new table
+      });
+  
+      // Get the newViewId from the newly created view
+      const newViewId = newView.id;
+  
+      // Navigate to the new base, table, and view's URL using both the newBaseId, newTableId, and newViewId
+      router.push(`/${newBaseId}-${newTableId}-${newViewId}`);
     } catch (error) {
-      console.error("Error creating base and table:", error);
+      console.error("Error creating base, table, and view:", error);
     }
   };
-
+  
+  
   return (
     <div
       className={`fixed left-0 flex h-[calc(100vh-48px)] w-1/5 transform flex-col border-r bg-white transition-all duration-300 ease-in-out ${

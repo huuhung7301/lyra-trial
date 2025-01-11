@@ -16,6 +16,8 @@ import { api } from "~/trpc/react";
 import { faker } from "@faker-js/faker";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import SearchModal from "./search-modal";
+import { useViewContext } from "../view-context";
+import { processData } from "./processData";
 
 const defaultData: object[] = Array.from({ length: 4 }, (_, i) => ({
   id: `i + 1`,
@@ -40,6 +42,12 @@ export function DataTable({ tableId }: DataTableProps) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const { viewData } = useViewContext();
+
+  const { filters = {}, sorting = {}, hiddenFields = {} } = viewData || {};
+
+
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
@@ -128,6 +136,9 @@ export function DataTable({ tableId }: DataTableProps) {
     } catch (error) {
       console.error("Error saving table data:", error);
     }
+    if(data){
+      console.log("Processed data", processData(data, viewData))
+    }
   }, [data, tableId, updateTable]);
 
   const updateData = useCallback(
@@ -142,12 +153,13 @@ export function DataTable({ tableId }: DataTableProps) {
       });
     },
     [],
+    
   );
 
   useEffect(() => {
     const interval = setInterval(() => {
       void saveTable(); // Explicitly ignore the promise to satisfy the linter
-    }, 10000); // Adjusted to 10,000 ms (10 seconds) for consistency with the comment
+    }, 1000); // Adjusted to 10,000 ms (10 seconds) for consistency with the comment
 
     return () => clearInterval(interval); // Cleanup on unmount
   }, [saveTable]);
@@ -221,10 +233,16 @@ export function DataTable({ tableId }: DataTableProps) {
     [data.length],
   );
 
-  const columns = useMemo<ColumnDef<object>[]>(() => {
-    if (!data[0]) return []; // Ensure data[0] is defined
+  const processedData = useMemo<Record<string, unknown>[]>(() => {
+    // Cast data to Record<string, unknown>[] if needed
+    return processData(data, viewData) as Record<string, unknown>[];
+  }, [data, viewData]);
+  
 
-    return Object.keys(data[0]).map((key, index) => ({
+  const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(() => {
+    if (!processedData[0]) return [];
+  
+    return Object.keys(processedData[0]).map((key, index) => ({
       accessorKey: key,
       header: key.charAt(0).toUpperCase() + key.slice(1),
       size: index === 0 ? 50 : 160,
@@ -239,15 +257,19 @@ export function DataTable({ tableId }: DataTableProps) {
         />
       ),
     }));
-  }, [data, searchQuery, updateData, handleCellNavigation]);
+  }, [data, searchQuery, updateData, handleCellNavigation, processedData]);
+  
 
-  const table = useReactTable({
-    data,
-    columns,
+
+
+  const table = useReactTable<Record<string, unknown>>({
+    data: processedData, // Ensure data type matches
+    columns, // Ensure columns type matches Record<string, unknown>
     getCoreRowModel: getCoreRowModel(),
     enableColumnResizing: true,
     columnResizeMode,
   });
+  
 
   const rowVirtualizer = useVirtualizer({
     count: table.getRowModel().rows.length,
@@ -299,6 +321,7 @@ export function DataTable({ tableId }: DataTableProps) {
   };
 
   console.log("aaa", data);
+  console.log("bbb", processedData)
   return (
     <div className="relative">
       <div className="absolute right-0 top-0 z-50 w-[25%]">
@@ -447,7 +470,7 @@ export function DataTable({ tableId }: DataTableProps) {
           </div>
           <div>
             <Button
-              onClick={() => setIsAddColumnModalOpen(true)}
+              onClick={() => addRow()}
               className="flex items-center gap-2 bg-[#f4f4f4] px-4"
             >
               <PlusIcon className="h-6 w-6" />

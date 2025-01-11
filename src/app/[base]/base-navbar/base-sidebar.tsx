@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Search,
   Settings,
@@ -15,9 +15,10 @@ import {
   Smartphone,
   RectangleEllipsis,
 } from "lucide-react";
+import { api } from "~/trpc/react";
+import { useParams, useRouter } from "next/navigation";
 
 const viewOptions = [
-  { icon: Table, label: "Grid", color: "text-blue-500", isSelected: true },
   { icon: Calendar, label: "Calendar", color: "text-green-500" },
   { icon: LayoutGrid, label: "Gallery", color: "text-purple-500" },
   { icon: Check, label: "Kanban", color: "text-orange-500" },
@@ -29,6 +30,76 @@ const viewOptions = [
 
 export default function BaseSideBar() {
   const [isCreateOpen, setIsCreateOpen] = useState(true);
+  const params = useParams<{ base?: string | string[] }>();
+  const base = typeof params.base === "string" ? params.base : undefined;
+  const router = useRouter();
+
+  if (!base) {
+    return <div>Invalid base parameter</div>;
+  }
+
+  const [baseId, tableId, viewId] = base.split("-");
+
+  if (!baseId || !tableId || !viewId) {
+    return <div>Invalid base, table, or view ID</div>;
+  }
+
+  // Convert tableId and viewId to numbers
+  const tableIdNum = parseInt(tableId, 10);
+  const viewIdNum = parseInt(viewId, 10);
+  const [selectedViewId, setSelectedViewId] = useState<number | null>(0); // State to track selected view
+
+  const {
+    data: views,
+    refetch,
+    isLoading,
+    isError,
+  } = api.view.getAllViewsByTableId.useQuery(
+    { tableId: tableIdNum }, // Pass the table ID as a number
+    {
+      enabled: !!tableIdNum, // Only fetch if tableId is valid
+    },
+  );
+  useEffect(() => {
+    if (views && views[0] && !selectedViewId) {
+      setSelectedViewId(viewIdNum); // Select the first view if no view is selected
+    }
+  }, [views, selectedViewId]);
+
+  const handleSelectView = (viewId: number) => {
+    if (viewId != selectedViewId) {
+      setSelectedViewId(viewId);
+      router.replace(`${baseId}-${tableIdNum}-${viewId}`);
+    }
+  };
+  const createViewMutation = api.view.createView.useMutation();
+
+
+  const handleCreateView = async () => {
+    try {
+      // Call createView mutation to generate a new view
+      const newView = await createViewMutation.mutateAsync({
+        name: "Grid View", // Default name for the view, can be customized
+        filters: {}, // Provide any default filters if needed
+        sorting: {}, // Provide any default sorting if needed
+        hiddenFields: {}, // Provide any default hidden fields if needed
+        tableid: tableIdNum, // Associate the view with the new table
+      });
+
+      // Once view is created, set it as selected and navigate to it
+      router.replace(`${baseId}-${tableIdNum}-${newView.id}`);
+      // Add the new view to the list (you can add it to the start or end of the list)
+      refetch()
+      // Set the selected view to the newly created view's ID
+      setSelectedViewId(newView.id);
+    } catch (error) {
+      console.error("Error creating view:", error);
+    }
+  };
+
+  // Handle loading and error states
+  if (isLoading) return <div>Loading views...</div>;
+  if (isError) return <div>Error loading views</div>;
 
   return (
     <div className="flex h-full flex-col justify-between bg-white p-4">
@@ -47,13 +118,25 @@ export default function BaseSideBar() {
           </button>
         </div>
 
-        {/* Selected view */}
-        <div className="rounded-sm bg-blue-200 p-2">
-          <div className="flex items-center gap-2 font-medium text-gray-700">
-            <Table className="h-5 w-5 text-blue-500" />
-            <span>Grid view</span>
+        {views && views.length > 0 && (
+          <div>
+            {views.map((view) => (
+              <div
+                key={view.id}
+                onClick={() => handleSelectView(view.id)} // Set clicked view as selected
+                className={`cursor-pointer rounded-sm p-2 ${
+                  selectedViewId === view.id ? "bg-blue-200" : ""
+                }`}
+              >
+                <div className="flex items-center gap-2 font-medium text-gray-700">
+                  <Table className="h-5 w-5 text-blue-500" />
+                  <span>{view.name}</span>{" "}
+                  {/* Assuming `view.name` holds the view's name */}
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        )}
       </div>
 
       {/* Bottom Section */}
@@ -76,6 +159,17 @@ export default function BaseSideBar() {
             isCreateOpen ? "max-h-96" : "max-h-0"
           }`}
         >
+          <button
+            onClick={handleCreateView}
+            className="flex w-full items-center justify-between rounded-md py-1.5 text-left font-medium hover:bg-gray-100"
+          >
+            <div className="flex items-center gap-2">
+              <Table className="h-5 w-5 text-blue-500" />
+              <span className="text-md font-sm">Create New View</span>
+            </div>
+            <Plus className="h-5 w-5 text-gray-500" />
+          </button>
+
           {viewOptions.map((option) => (
             <button
               key={option.label}
