@@ -72,11 +72,13 @@ export default function ColumnFilter() {
       });
     }
   };
-
   useEffect(() => {
-    updateHiddenFields();
+    const update = async () => {
+      await updateHiddenFields(); // Await the asynchronous function here
+    };
+    update();
   }, [fieldStates]);
-
+  
   return (
     <div className="w-[300px] bg-white rounded-lg shadow-lg border">
       <div className="p-3 border-b">
