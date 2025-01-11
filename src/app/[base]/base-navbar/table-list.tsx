@@ -55,7 +55,6 @@ export function TableList() {
         {/* Render fetched table list */}
         {baseData?.tables.map((table) => {
           const firstViewId = table.firstViewId ?? table.views?.[0]?.id ?? null;
-          console.log("tableId", table.id)
 
           return (
             <div key={table.id} className="relative inline-block">

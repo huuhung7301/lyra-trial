@@ -118,7 +118,7 @@ export function DataTable() {
         console.error("Error setting table data:", error);
       }
     }
-  }, [tableData]);
+  }, [tableData?.tabledata]);
 
   const updateTable = api.table.updateTable.useMutation();
 
@@ -161,13 +161,24 @@ export function DataTable() {
     [],
   );
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      void saveTable(); // Explicitly ignore the promise to satisfy the linter
-    }, 1000); // Adjusted to 10,000 ms (10 seconds) for consistency with the comment
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-    return () => clearInterval(interval); // Cleanup on unmount
-  }, [saveTable]);
+  useEffect(() => {
+  if (debounceTimeout.current) {
+    clearTimeout(debounceTimeout.current); // Clear the previous timeout
+  }
+
+  // Set a new timeout with a 1000ms (1 second) delay
+  debounceTimeout.current = setTimeout(() => {
+    void saveTable(); // Explicitly ignore the promise to satisfy the linter
+  }, 5000);
+
+  return () => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current); // Clean up timeout on unmount
+    }
+  };
+}, [data, saveTable]);
 
   const handleCellNavigation = useCallback(
     (
@@ -261,7 +272,7 @@ export function DataTable() {
         />
       ),
     }));
-  }, [data, searchQuery, updateData, handleCellNavigation, processedData]);
+  }, [data, searchQuery, handleCellNavigation, processedData]);
 
   const table = useReactTable<Record<string, unknown>>({
     data: processedData, // Ensure data type matches
