@@ -34,20 +34,21 @@ export default function BaseSideBar() {
   const base = typeof params.base === "string" ? params.base : undefined;
   const router = useRouter();
 
-  if (!base) {
-    return <div>Invalid base parameter</div>;
+  // Initialize baseId, tableId, and viewId
+  let baseId: string | undefined;
+  let tableIdNum: number | undefined;
+  let viewIdNum: number | undefined;
+
+  if (base) {
+    const [baseIdStr, tableIdStr, viewIdStr] = base.split("-");
+    baseId = baseIdStr;
+    if(tableIdStr)
+    tableIdNum = parseInt(tableIdStr, 10);
+    if(viewIdStr)
+    viewIdNum = parseInt(viewIdStr, 10);
   }
 
-  const [baseId, tableId, viewId] = base.split("-");
-
-  if (!baseId || !tableId || !viewId) {
-    return <div>Invalid base, table, or view ID</div>;
-  }
-
-  // Convert tableId and viewId to numbers
-  const tableIdNum = parseInt(tableId, 10);
-  const viewIdNum = parseInt(viewId, 10);
-  const [selectedViewId, setSelectedViewId] = useState<number | null>(0); // State to track selected view
+  const [selectedViewId, setSelectedViewId] = useState<number | null>(null);
 
   const {
     data: views,
@@ -55,49 +56,46 @@ export default function BaseSideBar() {
     isLoading,
     isError,
   } = api.view.getAllViewsByTableId.useQuery(
-    { tableId: tableIdNum }, // Pass the table ID as a number
-    {
-      enabled: !!tableIdNum, // Only fetch if tableId is valid
-    },
+    { tableId: tableIdNum || 0 },
+    { enabled: !!tableIdNum }
   );
+
   useEffect(() => {
     if (views && views[0] && !selectedViewId) {
-      setSelectedViewId(viewIdNum); // Select the first view if no view is selected
+      setSelectedViewId(viewIdNum || views[0].id);
     }
-  }, [views, selectedViewId]);
+  }, [views, selectedViewId, viewIdNum]);
 
   const handleSelectView = (viewId: number) => {
-    if (viewId != selectedViewId) {
+    if (viewId !== selectedViewId) {
       setSelectedViewId(viewId);
       router.replace(`${baseId}-${tableIdNum}-${viewId}`);
     }
   };
-  const createViewMutation = api.view.createView.useMutation();
 
+  const createViewMutation = api.view.createView.useMutation();
 
   const handleCreateView = async () => {
     try {
-      // Call createView mutation to generate a new view
       const newView = await createViewMutation.mutateAsync({
-        name: "Grid View", // Default name for the view, can be customized
-        filters: {}, // Provide any default filters if needed
-        sorting: {}, // Provide any default sorting if needed
-        hiddenFields: {}, // Provide any default hidden fields if needed
-        tableid: tableIdNum, // Associate the view with the new table
+        name: "Grid View",
+        filters: {},
+        sorting: {},
+        hiddenFields: {},
+        tableid: tableIdNum!,
       });
-
-      // Once view is created, set it as selected and navigate to it
       router.replace(`${baseId}-${tableIdNum}-${newView.id}`);
-      // Add the new view to the list (you can add it to the start or end of the list)
-      refetch()
-      // Set the selected view to the newly created view's ID
+      refetch();
       setSelectedViewId(newView.id);
     } catch (error) {
       console.error("Error creating view:", error);
     }
   };
 
-  // Handle loading and error states
+  if (!base || !baseId || !tableIdNum || !viewIdNum) {
+    return <div>Invalid base, table, or view ID</div>;
+  }
+
   if (isLoading) return <div>Loading views...</div>;
   if (isError) return <div>Error loading views</div>;
 
@@ -105,33 +103,31 @@ export default function BaseSideBar() {
     <div className="flex h-full flex-col justify-between bg-white p-4">
       {/* Top Section */}
       <div className="space-y-4">
-        {/* Search input */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             placeholder="Find a view"
-            className="text w-full border-b border-gray-200 py-2 pl-10 pr-10 focus:border-b-2 focus:border-blue-500 focus:outline-none"
+            className="w-full border-b border-gray-200 py-2 pl-10 pr-10 focus:border-b-2 focus:border-blue-500 focus:outline-none"
           />
           <button className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 hover:bg-gray-100">
             <Settings className="h-5 w-5 text-gray-400" />
           </button>
         </div>
 
-        {views && views.length > 0 && (
+        {views && (
           <div>
             {views.map((view) => (
               <div
                 key={view.id}
-                onClick={() => handleSelectView(view.id)} // Set clicked view as selected
+                onClick={() => handleSelectView(view.id)}
                 className={`cursor-pointer rounded-sm p-2 ${
                   selectedViewId === view.id ? "bg-blue-200" : ""
                 }`}
               >
                 <div className="flex items-center gap-2 font-medium text-gray-700">
                   <Table className="h-5 w-5 text-blue-500" />
-                  <span>{view.name}</span>{" "}
-                  {/* Assuming `view.name` holds the view's name */}
+                  <span>{view.name}</span>
                 </div>
               </div>
             ))}
@@ -139,7 +135,6 @@ export default function BaseSideBar() {
         )}
       </div>
 
-      {/* Bottom Section */}
       <div className="space-y-1 border-t px-4 pt-4">
         <button
           onClick={() => setIsCreateOpen(!isCreateOpen)}
@@ -153,7 +148,6 @@ export default function BaseSideBar() {
           />
         </button>
 
-        {/* Create options */}
         <div
           className={`space-y-1 overflow-hidden transition-all duration-200 ${
             isCreateOpen ? "max-h-96" : "max-h-0"
@@ -165,7 +159,7 @@ export default function BaseSideBar() {
           >
             <div className="flex items-center gap-2">
               <Table className="h-5 w-5 text-blue-500" />
-              <span className="text-md font-sm">Create New View</span>
+              <span>Create New View</span>
             </div>
             <Plus className="h-5 w-5 text-gray-500" />
           </button>
@@ -191,7 +185,7 @@ export default function BaseSideBar() {
               <Plus className="h-5 w-5 text-gray-500" />
             </button>
           ))}
-          {/* Form Button */}
+
           <div className="mt-2 border-t pt-3">
             <button className="flex w-full items-center justify-between rounded-md py-2 hover:bg-gray-100">
               <div className="flex items-center gap-2 font-medium">

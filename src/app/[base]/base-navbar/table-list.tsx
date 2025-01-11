@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dropdown } from "~/components/ui/dropdown";
 import { useRouter, useParams } from "next/navigation";
 import { api } from "~/trpc/react";
+import Loading from "~/components/ui/loading";
 
 export function TableList() {
   const params = useParams<{ base?: string | string[] }>();
@@ -45,7 +46,7 @@ export function TableList() {
   };
 
   // Show loading or error state
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <Loading/>;
   if (isError) return <div>Error loading tables.</div>;
 
   return (

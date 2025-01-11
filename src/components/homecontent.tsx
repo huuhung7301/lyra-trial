@@ -7,6 +7,8 @@ import { TimeSection } from "@/components/home/time-section";
 import { SidebarNav } from "~/components/sidebar-nav/sidebar-nav";
 import { Sparkles, Grid, ArrowUpCircle, Table } from "lucide-react";
 import { api } from "~/trpc/react";
+import Loading from "./ui/loading";
+
 // Dummy data (no changes to this data)
 interface RecentItem {
   id: number;
@@ -101,7 +103,7 @@ export function HomeContent() {
   }));
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <Loading/>;
   }
 
   return (

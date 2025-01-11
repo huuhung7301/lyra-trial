@@ -6,6 +6,7 @@ import BaseSideBar from "./base-navbar/base-sidebar";
 import { DataTable } from "./table/table";
 import { api } from "~/trpc/react"; // Import your TRPC API client
 import { ViewProvider } from "./view-context";
+import Loading from "@/components/ui/loading";
 
 export default function BasePage() {
   const params = useParams<{ base?: string | string[] }>(); // Account for base being string or string[]
@@ -40,7 +41,7 @@ export default function BasePage() {
 
   // Handle loading and error states
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <Loading/>;
   }
 
   if (isError) {
