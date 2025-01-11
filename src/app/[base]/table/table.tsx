@@ -51,6 +51,10 @@ export function DataTable() {
       e.preventDefault();
       setIsSearchModalOpen(true); // Open modal when Ctrl + F is pressed
     }
+    if (e.ctrlKey && e.key === "s") {
+      e.preventDefault();
+      saveTable();
+    }
   };
 
   // Add event listener when the component mounts
@@ -163,7 +167,7 @@ export function DataTable() {
   // Set a new timeout with a 1000ms (1 second) delay
   debounceTimeout.current = setTimeout(() => {
     void saveTable(); // Explicitly ignore the promise to satisfy the linter
-  }, 5000);
+  }, 1000);
 
   return () => {
     if (debounceTimeout.current) {
