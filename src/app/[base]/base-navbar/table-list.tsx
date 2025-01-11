@@ -39,7 +39,7 @@ export function TableList() {
         tableid: newTable.id,
       });
       router.replace(`/${baseId}-${newTable.id}-${newView.id}`);
-      refetch();
+      await refetch();
     } catch (error) {
       console.error("Error creating table and view:", error);
     }
@@ -54,7 +54,7 @@ export function TableList() {
       <div className="flex w-[88%] items-center rounded-t-lg bg-[#854631] pl-4 font-normal">
         {/* Render fetched table list */}
         {baseData?.tables.map((table) => {
-          const firstViewId = table.firstViewId || table.views?.[0]?.id || null;
+          const firstViewId = table.firstViewId ?? table.views?.[0]?.id ?? null;
           console.log("tableId", table.id)
 
           return (

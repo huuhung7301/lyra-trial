@@ -16,7 +16,7 @@ export interface ViewContextData {
   columns: string[]; // List of column names (keys)
   isLoading: boolean;
   isError: boolean;
-  updateViewData: (updatedViewData: ViewContextData["viewData"]) => void;
+  updateViewData: (updatedViewData: ViewContextData["viewData"]) => Promise<void>; // Change this to return a Promise
 }
 
 const ViewContext = createContext<ViewContextData>({
@@ -24,7 +24,10 @@ const ViewContext = createContext<ViewContextData>({
   columns: [],
   isLoading: true,
   isError: false,
-  updateViewData: () => {}, // Default no-op function
+  // Change the default function to return a Promise
+  updateViewData: async () => {
+    console.warn("update view data"); // Or you can leave it empty if needed
+  },
 });
 
 export function ViewProvider({

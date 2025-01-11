@@ -56,13 +56,13 @@ export default function BaseSideBar() {
     isLoading,
     isError,
   } = api.view.getAllViewsByTableId.useQuery(
-    { tableId: tableIdNum || 0 },
+    { tableId: tableIdNum ?? 0 },
     { enabled: !!tableIdNum }
   );
 
   useEffect(() => {
-    if (views && views[0] && !selectedViewId) {
-      setSelectedViewId(viewIdNum || views[0].id);
+    if (views?.[0] && !selectedViewId) {
+      setSelectedViewId(viewIdNum ?? views[0].id);
     }
   }, [views, selectedViewId, viewIdNum]);
 
@@ -85,7 +85,7 @@ export default function BaseSideBar() {
         tableid: tableIdNum!,
       });
       router.replace(`${baseId}-${tableIdNum}-${newView.id}`);
-      refetch();
+      await refetch();
       setSelectedViewId(newView.id);
     } catch (error) {
       console.error("Error creating view:", error);

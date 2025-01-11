@@ -44,10 +44,6 @@ export function DataTable({ tableId }: DataTableProps) {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const { viewData } = useViewContext();
 
-  const { filters = {}, sorting = {}, hiddenFields = {} } = viewData || {};
-
-
-
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };

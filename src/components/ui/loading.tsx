@@ -33,15 +33,15 @@ export default function Loading() {
         <main className="flex-1 p-4 overflow-auto">
           {/* Table header */}
           <div className="flex mb-2">
-            {[...Array(5)].map((_, i) => (
+            {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-8 flex-1 mr-2" />
             ))}
           </div>
 
           {/* Table rows */}
-          {[...Array(10)].map((_, rowIndex) => (
+          {Array.from({ length: 10 }).map((_, rowIndex) => (
             <div key={rowIndex} className="flex mb-2">
-              {[...Array(5)].map((_, colIndex) => (
+              {Array.from({ length: 5 }).map((_, colIndex) => (
                 <Skeleton key={colIndex} className="h-10 flex-1 mr-2" />
               ))}
             </div>
@@ -51,4 +51,3 @@ export default function Loading() {
     </div>
   )
 }
-
