@@ -40,7 +40,7 @@ export function DataTable() {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const { viewData } = useViewContext();
   const params = useParams<{ base?: string | string[] }>(); // Account for base being string or string[]
-  const baseParam = typeof params.base === "string" ? params.base : undefined;
+  const baseParam = typeof params.base === "string" ? params.base : "0-0-0";
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
