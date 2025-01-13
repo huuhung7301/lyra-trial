@@ -69,7 +69,6 @@ export function DataTable() {
   };
   
   
-  
 
   // Add event listener when the component mounts
   useEffect(() => {
@@ -84,7 +83,6 @@ export function DataTable() {
 
   const tableIdNum = tableId ? parseInt(tableId) : null;
   const add15kRow = () => {
-    // Generate 15,000 new rows of data using faker.js
     const newData = Array.from({ length: 15000 }, () => ({
       id: faker.number.int(), // Call the method to generate a number
       name: faker.person.firstName(), // Call the method to generate a first name
@@ -155,7 +153,7 @@ export function DataTable() {
     if (data) {
       console.log("Processed data", processData(data, viewData));
     }
-  }, [data, tableId, updateTable]);
+  }, [data]);
 
   const updateData = useCallback(
     (rowIndex: number, columnId: string, value: string | number) => {

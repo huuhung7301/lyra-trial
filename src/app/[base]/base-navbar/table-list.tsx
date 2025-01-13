@@ -24,6 +24,7 @@ export function TableList() {
     { id: Number(baseId) },
     { enabled: !!baseId }
   );
+  console.log("base data", baseData)
 
   // Handle create table and view
   const handleCreate = async () => {

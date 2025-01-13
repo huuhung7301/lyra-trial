@@ -25,8 +25,7 @@ export function BaseCard({
 
   // Fetch the viewId dynamically only on click
   const handleClick = async () => {
-    const extractedBaseId = firstTableId.split("-")[0];
-    router.push(`/${extractedBaseId}-${firstTableId}-${firstViewId}`);
+    router.push(`/${baseId}-${firstTableId}-${firstViewId}`);
     return;
   };
 
