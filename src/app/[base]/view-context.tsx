@@ -176,7 +176,7 @@ export function ViewProvider({
             // Add auto-incremented IDs
             const dataWithIds = tableDataArray.map((item, index) => ({
               id: index + 1, // Auto-increment id
-              ...(typeof item === "object" && item !== null ? item : {}),
+              ...item,
             }));
     
             if (offset === 0) {
