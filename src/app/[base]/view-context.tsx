@@ -154,8 +154,8 @@ export function ViewProvider({
         hiddenFields:
           Array.isArray(viewData?.hiddenFields) &&
           viewData.hiddenFields.every((item) => typeof item === "string")
-            ? (viewData.hiddenFields as string[])
-            : undefined,
+          ? viewData.hiddenFields
+          : undefined,
         limit: 50,
         offset: offset,
       },
@@ -164,44 +164,40 @@ export function ViewProvider({
       },
     );
 
-  useEffect(() => {
-    // Determine which response to use based on availability
-    const tableDataResponse = viewData
-      ? advancedTableDataResponse
-      : basicTableDataResponse;
-
-    if (tableDataResponse && Array.isArray(tableDataResponse)) {
-      try {
-        const tableDataArray = tableDataResponse[0]?.tabledata;
-
-        if (Array.isArray(tableDataArray)) {
-          // Add auto-incremented IDs
-          const dataWithIds = tableDataArray.map((item, index) => ({
-            id: index + 1, // Auto-increment id
-            ...(typeof item === "object" && item !== null ? item : {}),
-          }));
-          if (offset == 0) {
-            setTableData(dataWithIds);
+    useEffect(() => {
+      // Determine which response to use based on availability
+      const tableDataResponse = viewData ? advancedTableDataResponse : basicTableDataResponse;
+    
+      if (Array.isArray(tableDataResponse)) {
+        try {
+          const tableDataArray = (tableDataResponse[0] as Record<string, unknown> )?.tabledata;
+    
+          if (Array.isArray(tableDataArray)) {
+            // Add auto-incremented IDs
+            const dataWithIds = tableDataArray.map((item, index) => ({
+              id: index + 1, // Auto-increment id
+              ...(typeof item === "object" && item !== null ? item : {}),
+            }));
+    
+            if (offset === 0) {
+              setTableData(dataWithIds);
+            } else {
+              setTableData((prevData) => [...prevData, ...dataWithIds]);
+            }
           } else {
-            setTableData((prevData) => [...prevData, ...dataWithIds]);
+            console.error("tableDataResponse[0].tabledata is not an array");
           }
-        } else {
-          console.error(
-            "tableDataResponse.tableData[0].tabledata is not an array",
-          );
+        } catch (error) {
+          console.error("Error processing table data:", error);
         }
-      } catch (error) {
-        console.error("Error processing table data:", error);
       }
-    }
-  }, [
-    basicTableDataResponse,
-    advancedTableDataResponse,
-    isBasicLoading,
-    isAdvancedLoading,
-    offset
-  ]);
-
+    }, [
+      basicTableDataResponse,
+      advancedTableDataResponse,
+      isBasicLoading,
+      isAdvancedLoading,
+      offset,
+    ]);
   const updateViewMutation = api.view.updateView.useMutation();
 
   // Function to update the viewData
