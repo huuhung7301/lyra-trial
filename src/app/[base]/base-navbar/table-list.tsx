@@ -24,7 +24,6 @@ export function TableList() {
     { id: Number(baseId) },
     { enabled: !!baseId }
   );
-  console.log("base data", baseData)
 
   // Handle create table and view
   const handleCreate = async () => {
@@ -38,6 +37,7 @@ export function TableList() {
       const newView = await createViewMutation.mutateAsync({
         name: "Grid View",
         tableid: newTable.id,
+        hiddenFields: ["id", "name", "notes", "assignee", "status"]
       });
       router.replace(`/${baseId}-${newTable.id}-${newView.id}`);
       await refetch();

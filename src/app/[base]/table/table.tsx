@@ -17,16 +17,18 @@ import { faker } from "@faker-js/faker";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import SearchModal from "./search-modal";
 import { useViewContext } from "../view-context";
-import { processData } from "./processData";
 import { useParams } from "next/navigation";
 
-const defaultData: object[] = Array.from({ length: 4 }, (_, i) => ({
-  id: `i + 1`,
-  name: "",
-  notes: "",
-  assignee: "",
-  status: "",
-}));
+const defaultData: Record<string, unknown>[] = Array.from(
+  { length: 4 },
+  (_, i) => ({
+    id: i + 1,
+    name: "",
+    notes: "",
+    assignee: "",
+    status: "",
+  }),
+);
 
 export function DataTable() {
   const [data, setData] = useState(defaultData); // Type is inferred from defaultData
@@ -38,9 +40,43 @@ export function DataTable() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const { viewData } = useViewContext();
+  const { tabledata, increaseOffset } = useViewContext();
   const params = useParams<{ base?: string | string[] }>(); // Account for base being string or string[]
   const baseParam = typeof params.base === "string" ? params.base : "0-0-0";
+  const [modifiedRows, setModifiedRows] = useState<Record<string, unknown>[]>(
+    [],
+  );
+  useEffect(() => {
+    const handleScroll = () => {
+      const tableContainer = tableContainerRef.current;
+      if (!tableContainer) return;
+
+      const { scrollTop, scrollHeight, clientHeight } = tableContainer;
+
+      // Check if the user has scrolled to the bottom
+      if (scrollTop + clientHeight >= scrollHeight - 10) {
+        // Adding a little buffer
+        increaseOffset();
+      }
+    };
+
+    const tableContainer = tableContainerRef.current;
+    if (tableContainer) {
+      tableContainer.addEventListener("scroll", handleScroll);
+    }
+
+    return () => {
+      if (tableContainer) {
+        tableContainer.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (tabledata) {
+      setData(tabledata); // Update data when tabledata is available
+    }
+  }, [tabledata]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -51,14 +87,14 @@ export function DataTable() {
       e.preventDefault();
       setIsSearchModalOpen(true); // Open modal when Ctrl + F is pressed
     }
-  
+
     if (e.ctrlKey && e.key === "s") {
       e.preventDefault();
       // Use `void` to indicate you're deliberately not handling the promise here
       void handleSaveTable(); // Ignore the promise
     }
   };
-  
+
   // Separate async function for saving the table
   const handleSaveTable = async () => {
     try {
@@ -67,8 +103,6 @@ export function DataTable() {
       console.error("Error saving table:", error);
     }
   };
-  
-  
 
   // Add event listener when the component mounts
   useEffect(() => {
@@ -81,79 +115,58 @@ export function DataTable() {
   // Split the baseParam into baseId and tableId
   const [baseId, tableId, viewId] = baseParam.split("-");
 
-  const tableIdNum = tableId ? parseInt(tableId) : null;
-  const add15kRow = () => {
+  const updateTable = api.table.updateTable.useMutation();
+  const add15kRow = async () => {
     const newData = Array.from({ length: 15000 }, () => ({
-      id: faker.number.int(), // Call the method to generate a number
-      name: faker.person.firstName(), // Call the method to generate a first name
-      notes: faker.lorem.sentence(), // Call the method to generate a sentence
-      assignee: faker.person.lastName(), // Call the method to generate a last name
-      status: faker.helpers.arrayElement(["Active", "Inactive", "Pending"]), // Call to select an array element
+      id: faker.number.int(),
+      name: faker.person.firstName(),
+      notes: faker.lorem.sentence(),
+      assignee: faker.person.lastName(),
+      status: faker.helpers.arrayElement(["Active", "Inactive", "Pending"]),
     }));
 
-    setData(newData); // Replace the old data with the newly generated data
-  };
-
-  const {
-    data: tableData,
-    isLoading,
-    isError,
-  } = api.table.getTableById.useQuery(
-    { id: tableIdNum ?? 0 }, // Pass the table ID as a number
-    {
-      enabled: !!tableIdNum, // Only fetch if tableId is valid
-    },
-  );
-
-  // Update data when tableData is available
-  useEffect(() => {
-    if (tableData?.tabledata && Array.isArray(tableData.tabledata)) {
-      try {
-        // Add an auto-increment `id` to each object, ensure item is an object
-        const dataWithIds = tableData.tabledata.map((item, index) => {
-          if (item && typeof item === "object") {
-            return {
-              id: index + 1, // Auto-increment id starting from 1
-              ...item,
-            };
-          }
-          // If the item is not an object, handle it accordingly (e.g., skip it or create a default object)
-          return { id: index + 1 };
-        });
-
-        setData(dataWithIds as object[]);
-      } catch (error) {
-        console.error("Error setting table data:", error);
-      }
-    }
-  }, [tableData?.tabledata]);
-
-  const updateTable = api.table.updateTable.useMutation();
-
-  const saveTable = useCallback(async () => {
-    if (!tableId) return; // Ensure tableId is available
-
-    // Check if data has changed
-    if (JSON.stringify(data) === JSON.stringify(lastSavedData.current)) {
-      console.log("No changes detected, skipping save");
+    if (!tableId) {
+      console.error("Invalid or missing tableId");
       return;
     }
 
     try {
-      console.log("Saving table data...");
+      // Assuming `updateTable` is the API mutation function you are calling
       await updateTable.mutateAsync({
-        id: parseInt(tableId),
-        tabledata: data,
+        id: parseInt(tableId), // Example table ID, replace with actual ID
+        tabledata: newData,
       });
+
+      console.log("15k rows successfully added");
+      increaseOffset(1)
+    } catch (error) {
+      console.error("Error adding rows:", error);
+    }
+  };
+
+  const updateTable2 = api.table.updateTable2.useMutation();
+
+  const saveTable = useCallback(async () => {
+    if (!tableId) return; // Ensure tableId is available
+
+    // Check if data has changed by comparing with the last saved data
+    if (modifiedRows.length === 0) {
+      console.log("No changes detected, skipping save");
+      return;
+    }
+    console.log("midify row", modifiedRows)
+    try {
+      console.log("Saving table data...");
+      await updateTable2.mutateAsync({
+        tableId: parseInt(tableId),
+        newRowData: modifiedRows, // Pass the entire updated data to the mutation
+      });
+      setModifiedRows([]);
       console.log("Table data saved successfully");
-      lastSavedData.current = data; // Update last saved data after successful save
     } catch (error) {
       console.error("Error saving table data:", error);
     }
-    if (data) {
-      console.log("Processed data", processData(data, viewData));
-    }
-  }, [data]);
+  }, [modifiedRows]);
 
   const updateData = useCallback(
     (rowIndex: number, columnId: string, value: string | number) => {
@@ -162,6 +175,22 @@ export function DataTable() {
         const rowToUpdate = newData[rowIndex];
         if (rowToUpdate) {
           newData[rowIndex] = { ...rowToUpdate, [columnId]: value };
+
+          setModifiedRows((prevModifiedRows) => {
+            const existingRowIndex = prevModifiedRows.findIndex(
+              (row) => row.id === rowToUpdate.id, // Assuming each row has a unique 'id'
+            );
+
+            if (existingRowIndex === -1) {
+              // If not found, add the row
+              return [...prevModifiedRows, rowToUpdate];
+            } else {
+              // If found, replace that row
+              const updatedRows = [...prevModifiedRows];
+              updatedRows[existingRowIndex] = rowToUpdate; // Replace the existing row
+              return updatedRows;
+            }
+          });
         }
         return newData;
       });
@@ -172,21 +201,21 @@ export function DataTable() {
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-  if (debounceTimeout.current) {
-    clearTimeout(debounceTimeout.current); // Clear the previous timeout
-  }
-
-  // Set a new timeout with a 1000ms (1 second) delay
-  debounceTimeout.current = setTimeout(() => {
-    void saveTable(); // Explicitly ignore the promise to satisfy the linter
-  }, 1000);
-
-  return () => {
     if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current); // Clean up timeout on unmount
+      clearTimeout(debounceTimeout.current); // Clear the previous timeout
     }
-  };
-}, [data, saveTable]);
+
+    // Set a new timeout with a 1000ms (1 second) delay
+    debounceTimeout.current = setTimeout(() => {
+      void saveTable(); // Explicitly ignore the promise to satisfy the linter
+    }, 2000);
+
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current); // Clean up timeout on unmount
+      }
+    };
+  }, [data, saveTable]);
 
   const handleCellNavigation = useCallback(
     (
@@ -250,21 +279,15 @@ export function DataTable() {
         `tr:nth-child(${nextRowIndex + 1}) td[data-column-id="${nextColumnId}"] input`,
       ) as HTMLInputElement | null;
 
-
       nextCell?.focus();
     },
     [data.length],
   );
 
-  const processedData = useMemo<Record<string, unknown>[]>(() => {
-    // Cast data to Record<string, unknown>[] if needed
-    return processData(data, viewData) as Record<string, unknown>[];
-  }, [data, viewData]);
-
   const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(() => {
-    if (!processedData[0]) return [];
+    if (!tabledata[0]) return [];
 
-    return Object.keys(processedData[0]).map((key, index) => ({
+    return Object.keys(tabledata[0]).map((key, index) => ({
       accessorKey: key,
       header: key.charAt(0).toUpperCase() + key.slice(1),
       size: index === 0 ? 50 : 160,
@@ -279,11 +302,11 @@ export function DataTable() {
         />
       ),
     }));
-  }, [data, searchQuery, handleCellNavigation, processedData]);
+  }, [tabledata, searchQuery, handleCellNavigation]);
 
   const table = useReactTable<Record<string, unknown>>({
-    data: processedData, // Ensure data type matches
-    columns, // Ensure columns type matches Record<string, unknown>
+    data: tabledata,
+    columns,
     getCoreRowModel: getCoreRowModel(),
     enableColumnResizing: true,
     columnResizeMode,
@@ -292,7 +315,7 @@ export function DataTable() {
   const rowVirtualizer = useVirtualizer({
     count: table.getRowModel().rows.length,
     getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 35, // Set row height
+    estimateSize: () => 35,
   });
 
   const headerIcons: Record<string, React.ReactNode> = {
@@ -311,7 +334,7 @@ export function DataTable() {
       })),
     );
     try {
-      await saveTable(); // Await the promise
+      // await saveTable(); // Await the promise
     } catch (error) {
       console.error("Failed to save table:", error);
     }
@@ -332,11 +355,12 @@ export function DataTable() {
 
     setData((prevData) => [...prevData, newRow]);
     try {
-      await saveTable(); // Await the promise
+      // await saveTable(); // Await the promise
     } catch (error) {
       console.error("Failed to save table:", error);
     }
   };
+  console.log("data", tabledata);
 
   return (
     <div className="relative">

@@ -100,7 +100,7 @@ export default function ColumnFilter() {
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={field.visible}
+                  checked={!field.visible}
                   onChange={() => toggleField(index)}
                   className="sr-only peer"
                 />
