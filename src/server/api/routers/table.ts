@@ -60,7 +60,7 @@ export const tableRouter = createTRPCRouter({
         (view.filters as Array<{
           field: string;
           operator: string;
-          value?: unknown;
+          value?: string;
         }>) ?? [];
 
       // Ensure sorting is always an array
