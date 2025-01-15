@@ -337,7 +337,7 @@ export const tableRouter = createTRPCRouter({
         const row = updatedRow as Record<string, unknown>;
 
         // Ensure the row has an 'id' field
-        const rowId = row.id;
+        const rowId = row.id as string;
         if (rowId === undefined) {
           throw new Error("Row does not have an 'id' field");
         }
