@@ -134,7 +134,7 @@ export function ViewProvider({
             ? (viewData.filters as {
                 field: string;
                 operator: string;
-                value?: any;
+                value?: string;
               }[])
             : undefined,
         sorting:
