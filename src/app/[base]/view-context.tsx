@@ -184,7 +184,7 @@ export function ViewProvider({
               setTableData(dataWithIds); // Directly set table data
             } else {
               setTableData((prevData) => [
-                ...(prevData as Record<string, unknown>[] || []), // Ensure `prevData` is properly typed
+                ...(prevData || []), // No type assertion needed here
                 ...dataWithIds,
               ]);
             }
