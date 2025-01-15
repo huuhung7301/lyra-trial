@@ -79,9 +79,14 @@ export default function BaseSideBar() {
     try {
       const newView = await createViewMutation.mutateAsync({
         name: "Grid View",
-        filters: {},
-        sorting: {},
-        hiddenFields: {},
+        filters: [],
+        sorting: [],
+        hiddenFields: [
+          "name",
+          "notes",
+          "status",
+          "assignee"
+        ],
         tableid: tableIdNum!,
       });
       router.replace(`${baseId}-${tableIdNum}-${newView.id}`);
