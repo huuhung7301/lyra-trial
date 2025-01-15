@@ -170,19 +170,23 @@ export function ViewProvider({
     
       if (Array.isArray(tableDataResponse)) {
         try {
-          const tableDataArray = (tableDataResponse[0] as Record<string, unknown> )?.tabledata;
+          // Safely access `tabledata` from the first element of the response
+          const tableDataArray = (tableDataResponse[0] as Record<string, unknown>)?.tabledata;
     
           if (Array.isArray(tableDataArray)) {
-            // Add auto-incremented IDs
+            // Add auto-incremented IDs, ensuring the type matches `Record<string, unknown>[]`
             const dataWithIds: Record<string, unknown>[] = tableDataArray.map((item, index) => ({
               id: index + 1, // Auto-increment id
-              ...item,
+              ...(item as Record<string, unknown>), // Ensure `item` is safely cast
             }));
     
             if (offset === 0) {
-              setTableData(dataWithIds);
+              setTableData(dataWithIds); // Directly set table data
             } else {
-              setTableData((prevData ) => [...prevData, ...dataWithIds]);
+              setTableData((prevData) => [
+                ...(prevData as Record<string, unknown>[] || []), // Ensure `prevData` is properly typed
+                ...dataWithIds,
+              ]);
             }
           } else {
             console.error("tableDataResponse[0].tabledata is not an array");
@@ -190,6 +194,8 @@ export function ViewProvider({
         } catch (error) {
           console.error("Error processing table data:", error);
         }
+      } else {
+        console.error("tableDataResponse is not an array");
       }
     }, [
       basicTableDataResponse,
@@ -198,6 +204,7 @@ export function ViewProvider({
       isAdvancedLoading,
       offset,
     ]);
+    
   const updateViewMutation = api.view.updateView.useMutation();
 
   // Function to update the viewData
