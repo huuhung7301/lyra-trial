@@ -76,18 +76,28 @@ export default function QueryBuilder({ onClose }: { onClose: () => void }) {
   });
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
+  const syncWithViewData = (updatedConditions: Condition[]) => {
+    setConditions(updatedConditions);
+    if (viewData) {
+      updateViewData({
+        ...viewData,
+        filters: convertToJsonValue(updatedConditions),
+      });
+    }
+  };
+
   const handleConditionChange = (
     index: number,
     key: keyof Condition,
     value: string,
   ) => {
-    const newConditions = conditions.map((condition, i) => {
+    const updatedConditions = conditions.map((condition, i) => {
       if (i === index) {
         return { ...condition, [key]: value };
       }
       return condition;
     });
-    setConditions(newConditions);
+    syncWithViewData(updatedConditions);
   };
 
   const addCondition = () => {
@@ -96,13 +106,14 @@ export default function QueryBuilder({ onClose }: { onClose: () => void }) {
       operator: "contains",
       value: "",
     };
-    setConditions([...conditions, newCondition]);
+    syncWithViewData([...conditions, newCondition]);
   };
 
   const removeCondition = (index: number) => {
-    const newConditions = conditions.filter((_, i) => i !== index);
-    setConditions(newConditions);
+    const updatedConditions = conditions.filter((_, i) => i !== index);
+    syncWithViewData(updatedConditions);
   };
+
   const handleClose = async () => {
     if (viewData) {
       await updateViewData({
@@ -112,11 +123,16 @@ export default function QueryBuilder({ onClose }: { onClose: () => void }) {
     }
     onClose(); // Call the onClose prop to indicate component is closing
   };
+
   return (
     <div className="w-full rounded-lg border bg-white shadow-lg">
       <div className="p-4">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="mb-4 text-gray-600">In this view, show records</h2>
+          {conditions.length > 0 ? (
+            <h2 className="mb-4 text-gray-600">In this view, show all records</h2>
+          ) : (
+            <h2 className="mb-4 text-gray-600">No filter conditions are applied</h2>
+          )}
           <button
             onClick={handleClose}
             className="text-gray-500 hover:text-gray-700"
@@ -219,15 +235,17 @@ export default function QueryBuilder({ onClose }: { onClose: () => void }) {
           </div>
         ))}
 
-        <div className="mt-4 flex items-center gap-4">
+        <div className="mt-4 flex items-center gap-4 min-w-[300px]">
           <button
             onClick={addCondition}
-            className="flex items-center gap-1 text-gray-600 hover:text-gray-800"
+            className="flex items-center gap-1 text-gray-600 hover:text-gray-800 "
           >
-            <span className="text-xl">+</span> Add condition
+            <span className="text-xl ">+</span> Add condition
           </button>
-          <button className="text-gray-600 hover:text-gray-800">
-            Copy from another view
+          <button
+            className="flex items-center gap-1 text-gray-600 hover:text-gray-800 "
+          >
+            <span className="text-xl ">+</span> Add condition group
           </button>
         </div>
       </div>

@@ -120,13 +120,13 @@ export default function ColumnFilter() {
 
       <div className="p-3 border-t grid grid-cols-2 gap-2">
         <button
-          onClick={() => toggleAll(false)}
+          onClick={() => toggleAll(true)}
           className="px-4 py-2 text-sm bg-gray-100 rounded hover:bg-gray-200"
         >
           Hide all
         </button>
         <button
-          onClick={() => toggleAll(true)}
+          onClick={() => toggleAll(false)}
           className="px-4 py-2 text-sm bg-gray-100 rounded hover:bg-gray-200"
         >
           Show all
