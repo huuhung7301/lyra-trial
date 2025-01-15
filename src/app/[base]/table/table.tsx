@@ -285,9 +285,9 @@ export function DataTable() {
   );
 
   const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(() => {
-    if (!tabledata[0]) return [];
+    if (!data[0]) return [];
 
-    return Object.keys(tabledata[0]).map((key, index) => ({
+    return Object.keys(data[0]).map((key, index) => ({
       accessorKey: key,
       header: key.charAt(0).toUpperCase() + key.slice(1),
       size: index === 0 ? 50 : 160,
@@ -305,7 +305,7 @@ export function DataTable() {
   }, [tabledata, searchQuery, handleCellNavigation]);
 
   const table = useReactTable<Record<string, unknown>>({
-    data: tabledata,
+    data: data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     enableColumnResizing: true,
@@ -342,25 +342,26 @@ export function DataTable() {
 
   const addRow = async () => {
     if (!data[0]) return;
-
+  
+    // Create a new row with the same structure as the existing data
     const newRow = Object.keys(data[0]).reduce(
-      (acc, key) => {
-        return {
-          ...acc,
-          [key]: "",
-        };
-      },
-      { id: data.length + 1 },
+      (acc, key) => ({
+        ...acc,
+        [key]: "", // Default empty value for new row
+      }),
+      { id: data.length + 1 }, // Assuming 'id' is unique and incrementing
     );
-
-    setData((prevData) => [...prevData, newRow]);
-    try {
-      // await saveTable(); // Await the promise
-    } catch (error) {
-      console.error("Failed to save table:", error);
-    }
+    console.log("new row", newRow)
+  
+    // Add the new row to data and modifiedRows
+    setData((prevData) => {
+      const updatedData = [...prevData, newRow];
+      setModifiedRows((prevModifiedRows) => [...prevModifiedRows, newRow]);
+      return updatedData;
+    });
   };
-  console.log("data", tabledata);
+  
+  console.log("data", data);
 
   return (
     <div className="relative">

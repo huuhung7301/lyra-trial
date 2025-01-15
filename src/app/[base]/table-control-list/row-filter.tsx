@@ -76,10 +76,10 @@ export default function QueryBuilder({ onClose }: { onClose: () => void }) {
   });
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
-  const syncWithViewData = (updatedConditions: Condition[]) => {
+  const syncWithViewData = async (updatedConditions: Condition[]) => {
     setConditions(updatedConditions);
     if (viewData) {
-      updateViewData({
+      await updateViewData({
         ...viewData,
         filters: convertToJsonValue(updatedConditions),
       });
