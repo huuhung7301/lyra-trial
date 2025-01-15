@@ -174,7 +174,7 @@ export function ViewProvider({
     
           if (Array.isArray(tableDataArray)) {
             // Add auto-incremented IDs
-            const dataWithIds = tableDataArray.map((item, index) => ({
+            const dataWithIds: Record<string, unknown>[] = tableDataArray.map((item, index) => ({
               id: index + 1, // Auto-increment id
               ...item,
             }));
@@ -182,7 +182,7 @@ export function ViewProvider({
             if (offset === 0) {
               setTableData(dataWithIds);
             } else {
-              setTableData((prevData) => [...prevData, ...dataWithIds]);
+              setTableData((prevData ) => [...prevData, ...dataWithIds]);
             }
           } else {
             console.error("tableDataResponse[0].tabledata is not an array");
