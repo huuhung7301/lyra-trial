@@ -6,6 +6,11 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 
+type SortingItem = {
+  field: string;
+  direction: "asc" | "desc";
+};
+
 export const tableRouter = createTRPCRouter({
   /**
    * Get all tables for a specific base
@@ -100,30 +105,23 @@ export const tableRouter = createTRPCRouter({
 
       const sortingClause = sorting.length
         ? sorting
-            .map((item: any) => {
+            .filter((item): item is SortingItem => item !== null) // Filter out null values
+            .map((item) => {
               // Ensure item is an object with `field` and `direction` properties
+              const { field, direction } = item;
               if (
-                typeof item === "object" &&
-                item !== null &&
-                "field" in item &&
-                "direction" in item
+                typeof field === "string" &&
+                (direction === "asc" || direction === "desc")
               ) {
-                const { field, direction } = item;
-                if (
-                  typeof field === "string" &&
-                  (direction === "asc" || direction === "desc")
-                ) {
-                  return `elem->>'${field}' ${direction}`;
-                } else {
-                  throw new Error(
-                    `Invalid field or direction: ${field}, ${direction}`,
-                  );
-                }
+                return `elem->>'${field}' ${direction}`;
+              } else {
+                throw new Error(
+                  `Invalid field or direction: ${field}, ${direction}`,
+                );
               }
-              throw new Error("Invalid sorting item format");
             })
             .join(", ")
-        : ""; // No sorting if sorting is empty
+        : "";
 
       const hiddenFieldsClause =
         hiddenFields.length > 0
@@ -218,30 +216,23 @@ export const tableRouter = createTRPCRouter({
 
       const sortingClause = sorting.length
         ? sorting
-            .map((item: any) => {
+            .filter((item): item is SortingItem => item !== null) // Filter out null values
+            .map((item) => {
               // Ensure item is an object with `field` and `direction` properties
+              const { field, direction } = item;
               if (
-                typeof item === "object" &&
-                item !== null &&
-                "field" in item &&
-                "direction" in item
+                typeof field === "string" &&
+                (direction === "asc" || direction === "desc")
               ) {
-                const { field, direction } = item;
-                if (
-                  typeof field === "string" &&
-                  (direction === "asc" || direction === "desc")
-                ) {
-                  return `elem->>'${field}' ${direction}`;
-                } else {
-                  throw new Error(
-                    `Invalid field or direction: ${field}, ${direction}`,
-                  );
-                }
+                return `elem->>'${field}' ${direction}`;
+              } else {
+                throw new Error(
+                  `Invalid field or direction: ${field}, ${direction}`,
+                );
               }
-              throw new Error("Invalid sorting item format");
             })
             .join(", ")
-        : ""; // No sorting if sorting is empty
+        : "";
 
       // Construct hidden fields clause
       const hiddenFieldsClause =
