@@ -209,10 +209,6 @@ export function ViewProvider({
               ...dataWithIds,
             ]);
           }
-        } else {
-          if (offset === 0) {
-            setTableData(defaultData2);
-          }
         }
       } catch (error) {
         console.error("Error processing table data:", error);

@@ -41,7 +41,7 @@ export function DataTable() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const { tabledata, increaseOffset, isLoading } = useViewContext();
+  const { tabledata, increaseOffset } = useViewContext();
   const params = useParams<{ base?: string | string[] }>(); // Account for base being string or string[]
   const baseParam = typeof params.base === "string" ? params.base : "0-0-0";
   const [modifiedRows, setModifiedRows] = useState<Record<string, unknown>[]>(
@@ -57,6 +57,7 @@ export function DataTable() {
       // Check if the user has scrolled to the bottom
       if (scrollTop + clientHeight >= scrollHeight - 10) {
         // Adding a little buffer
+        console.log("trigger offset increase")
         increaseOffset();
       }
     };
@@ -370,10 +371,7 @@ export function DataTable() {
     });
   };
 
-  console.log("data", data);
-
-  console.log("15k loading status", is15kLoading)
-  if (isLoading || is15kLoading) {
+  if (is15kLoading) {
     return <Loading />;
   }
   return (
