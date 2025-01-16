@@ -166,7 +166,7 @@ export default function QueryBuilder({ onClose }: { onClose: () => void }) {
                     <button
                       key={field}
                       onClick={() => {
-                        handleConditionChange(index, "field", field);
+                        void handleConditionChange(index, "field", field);
                         setActiveDropdown(null);
                       }}
                       className="block w-full px-4 py-2 text-left hover:bg-gray-50"
@@ -199,7 +199,7 @@ export default function QueryBuilder({ onClose }: { onClose: () => void }) {
                     <button
                       key={op}
                       onClick={() => {
-                        handleConditionChange(index, "operator", op);
+                        void handleConditionChange(index, "operator", op);
                         setActiveDropdown(null);
                       }}
                       className="block w-full px-4 py-2 text-left hover:bg-gray-50"
