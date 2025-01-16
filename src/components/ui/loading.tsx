@@ -8,18 +8,9 @@ function Skeleton({ className }: { className: string }) {
 
 export default function Loading() {
   return (
-    <div className="h-screen flex flex-col bg-gray-100 z-100">
+    <div className="h-screen flex flex-col bg-gray-100 z-50">
       {/* Header */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <aside className="w-64 bg-white border-r p-4">
-          <Skeleton className="h-6 w-3/4 mb-4" />
-          <Skeleton className="h-4 w-full mb-2" />
-          <Skeleton className="h-4 w-full mb-2" />
-          <Skeleton className="h-4 w-full mb-2" />
-          <Skeleton className="h-4 w-3/4" />
-        </aside>
-
         {/* Main content */}
         <main className="flex-1 p-4 overflow-auto">
           {/* Table header */}

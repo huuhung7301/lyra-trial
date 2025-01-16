@@ -27,14 +27,14 @@ export default function BasePage() {
 
   // Conditional rendering of the sidebar based on isSidebarOpen
   const sidebar = isSidebarOpen && (
-    <div className="fixed left-0 top-[19.5%] z-10 h-[80%] w-1/5 border-r bg-white">
+    <div className="fixed left-0 top-40 z-10 h-[100%] w-1/5 border-r bg-white border">
       <BaseSideBar />
     </div>
   );
 
   return (
     <main>
-      <div className="z-50">
+      <div className="z-10">
         {/* Wrap both BaseNavBar and DataTable with ViewProvider once */}
         <ViewProvider viewId={parseInt(viewId)} tableId={parseInt(tableId)}>
           <BaseNavBar
@@ -42,12 +42,11 @@ export default function BasePage() {
             setIsSidebarOpen={setIsSidebarOpen}
           />
           <div className={`${isSidebarOpen ? "ml-[20%]" : ""} transition-all`}>
-            {/* DataTable is also wrapped by ViewProvider */}
             <DataTable />
           </div>
+          {sidebar}
         </ViewProvider>
       </div>
-      {sidebar}
     </main>
   );
 }

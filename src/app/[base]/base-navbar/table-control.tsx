@@ -17,7 +17,6 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import ColumnFilter from "../table-control-list/column-filter";
 import RowFilter from "../table-control-list/row-filter";
 import SortFilter from "../table-control-list/sort-filter";

@@ -18,7 +18,7 @@ import {
 import { api } from "~/trpc/react";
 import { useParams, useRouter } from "next/navigation";
 import Loading from "~/components/ui/loading";
-
+import { useViewContext } from "../view-context";
 const viewOptions = [
   { icon: Calendar, label: "Calendar", color: "text-green-500" },
   { icon: LayoutGrid, label: "Gallery", color: "text-purple-500" },
@@ -34,6 +34,7 @@ export default function BaseSideBar() {
   const params = useParams<{ base?: string | string[] }>();
   const base = typeof params.base === "string" ? params.base : undefined;
   const router = useRouter();
+  const {isLoading: isViewLoading} = useViewContext()
 
   // Initialize baseId, tableId, and viewId
   let baseId: string | undefined;
@@ -101,7 +102,7 @@ export default function BaseSideBar() {
   if (isError) return <div>Error loading views</div>;
 
   return (
-    <div className="flex h-full flex-col justify-between bg-white p-4">
+    <div className="flex h-full flex-col justify-between bg-white pb-4 px-4">
       {/* Top Section */}
       <div className="space-y-4">
         <div className="relative">

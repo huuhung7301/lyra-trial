@@ -47,11 +47,10 @@ export function TableList() {
   };
 
   // Show loading or error state
-  if (isLoading) return <Loading/>;
   if (isError) return <div>Error loading tables.</div>;
 
   return (
-    <div className="flex items-center justify-between bg-[#944e37]">
+    <div className="h-10 flex items-center justify-between bg-[#944e37]">
       <div className="flex w-[88%] items-center rounded-t-lg bg-[#854631] pl-4 font-normal">
         {/* Render fetched table list */}
         {baseData?.tables.map((table) => {

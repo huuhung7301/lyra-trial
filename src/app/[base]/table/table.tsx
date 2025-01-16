@@ -41,7 +41,7 @@ export function DataTable() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const { tabledata, increaseOffset } = useViewContext();
+  const { tabledata, increaseOffset, isLoading} = useViewContext();
   const params = useParams<{ base?: string | string[] }>(); // Account for base being string or string[]
   const baseParam = typeof params.base === "string" ? params.base : "0-0-0";
   const [modifiedRows, setModifiedRows] = useState<Record<string, unknown>[]>(
@@ -371,7 +371,7 @@ export function DataTable() {
     });
   };
 
-  if (is15kLoading) {
+  if (is15kLoading || isLoading) {
     return <Loading />;
   }
   return (
