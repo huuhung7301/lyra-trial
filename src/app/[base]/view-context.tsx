@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { api } from "~/trpc/react"; // Assuming you're using trpc for API calls
 import { JsonValue } from "type-fest";
 
@@ -25,6 +31,16 @@ export interface ViewContextData {
 }
 const defaultData: Record<string, unknown>[] = Array.from(
   { length: 4 },
+  (_, i) => ({
+    id: i + 1,
+    name: "",
+    notes: "",
+    assignee: "",
+    status: "",
+  }),
+);
+const defaultData2: Record<string, unknown>[] = Array.from(
+  { length: 1 },
   (_, i) => ({
     id: i + 1,
     name: "",
@@ -154,8 +170,8 @@ export function ViewProvider({
         hiddenFields:
           Array.isArray(viewData?.hiddenFields) &&
           viewData.hiddenFields.every((item) => typeof item === "string")
-          ? viewData.hiddenFields
-          : undefined,
+            ? viewData.hiddenFields
+            : undefined,
         limit: 50,
         offset: offset,
       },
@@ -164,47 +180,56 @@ export function ViewProvider({
       },
     );
 
-    useEffect(() => {
-      // Determine which response to use based on availability
-      const tableDataResponse = viewData ? advancedTableDataResponse : basicTableDataResponse;
-    
-      if (Array.isArray(tableDataResponse)) {
-        try {
-          // Safely access `tabledata` from the first element of the response
-          const tableDataArray = (tableDataResponse[0] as Record<string, unknown>)?.tabledata;
-    
-          if (Array.isArray(tableDataArray)) {
-            // Add auto-incremented IDs, ensuring the type matches `Record<string, unknown>[]`
-            const dataWithIds: Record<string, unknown>[] = tableDataArray.map((item, index) => ({
+  useEffect(() => {
+    // Determine which response to use based on availability
+    const tableDataResponse = viewData
+      ? advancedTableDataResponse
+      : basicTableDataResponse;
+
+    if (Array.isArray(tableDataResponse)) {
+      try {
+        // Safely access `tabledata` from the first element of the response
+        const tableDataArray = (tableDataResponse[0] as Record<string, unknown>)
+          ?.tabledata;
+
+        if (Array.isArray(tableDataArray)) {
+          // Add auto-incremented IDs, ensuring the type matches `Record<string, unknown>[]`
+          const dataWithIds: Record<string, unknown>[] = tableDataArray.map(
+            (item, index) => ({
               id: index + 1, // Auto-increment id
               ...(item as Record<string, unknown>), // Ensure `item` is safely cast
-            }));
-    
-            if (offset === 0) {
-              setTableData(dataWithIds); // Directly set table data
-            } else {
-              setTableData((prevData) => [
-                ...(prevData || []), // No type assertion needed here
-                ...dataWithIds,
-              ]);
-            }
+            }),
+          );
+
+          if (offset === 0) {
+            setTableData(dataWithIds); // Directly set table data
           } else {
-            console.error("tableDataResponse[0].tabledata is not an array");
+            setTableData((prevData) => [
+              ...(prevData || []), // No type assertion needed here
+              ...dataWithIds,
+            ]);
           }
-        } catch (error) {
-          console.error("Error processing table data:", error);
+        } else {
+          if (offset === 0) {
+            setTableData(defaultData2);
+          }
         }
-      } else {
-        console.error("tableDataResponse is not an array");
+      } catch (error) {
+        console.error("Error processing table data:", error);
       }
-    }, [
-      basicTableDataResponse,
-      advancedTableDataResponse,
-      isBasicLoading,
-      isAdvancedLoading,
-      offset,
-    ]);
-    
+    } else {
+      if (offset === 0) {
+        setTableData(defaultData2);
+      }
+    }
+  }, [
+    basicTableDataResponse,
+    advancedTableDataResponse,
+    isBasicLoading,
+    isAdvancedLoading,
+    offset,
+  ]);
+
   const updateViewMutation = api.view.updateView.useMutation();
 
   // Function to update the viewData
