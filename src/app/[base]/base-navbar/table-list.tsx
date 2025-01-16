@@ -37,7 +37,7 @@ export function TableList() {
       const newView = await createViewMutation.mutateAsync({
         name: "Grid View",
         tableid: newTable.id,
-        hiddenFields: ["id", "name", "notes", "assignee", "status"]
+        hiddenFields: []
       });
       router.replace(`/${baseId}-${newTable.id}-${newView.id}`);
       await refetch();

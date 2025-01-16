@@ -8,7 +8,7 @@ function Skeleton({ className }: { className: string }) {
 
 export default function Loading() {
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
+    <div className="h-screen flex flex-col bg-gray-100 z-100">
       {/* Header */}
       <header className="h-16 bg-white border-b flex items-center px-4">
         <Skeleton className="h-8 w-32" />

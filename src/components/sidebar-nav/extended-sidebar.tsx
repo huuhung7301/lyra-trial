@@ -56,7 +56,7 @@ export function ExtendedSidebar({ isExpanded }: ExtendedSidebarProps) {
         name: "Grid View", // Default name for the view, can be customized
         filters: [],           // Provide any default filters if needed
         sorting: [],           // Provide any default sorting if needed
-        hiddenFields: ["id","name","notes","assignee","status"],      // Provide any default hidden fields if needed
+        hiddenFields: [],      // Provide any default hidden fields if needed
         tableid: newTableId,   // Associate the view with the new table
       });
   

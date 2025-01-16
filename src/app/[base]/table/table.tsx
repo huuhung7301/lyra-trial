@@ -18,6 +18,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import SearchModal from "./search-modal";
 import { useViewContext } from "../view-context";
 import { useParams } from "next/navigation";
+import Loading from "~/components/ui/loading";
 
 const defaultData: Record<string, unknown>[] = Array.from(
   { length: 4 },
@@ -40,8 +41,7 @@ export function DataTable() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const { tabledata, increaseOffset, viewData, updateViewData } =
-    useViewContext();
+  const { tabledata, increaseOffset, isLoading } = useViewContext();
   const params = useParams<{ base?: string | string[] }>(); // Account for base being string or string[]
   const baseParam = typeof params.base === "string" ? params.base : "0-0-0";
   const [modifiedRows, setModifiedRows] = useState<Record<string, unknown>[]>(
@@ -117,7 +117,11 @@ export function DataTable() {
   const [baseId, tableId, viewId] = baseParam.split("-");
 
   const updateTable = api.table.updateTable.useMutation();
+
+  const [is15kLoading, setIs15kLoading] = useState(false); // Updated variable name
+
   const add15kRow = async () => {
+    setIs15kLoading(true); // Set loading to true before starting the operation
     const newData = Array.from({ length: 15000 }, () => ({
       id: faker.number.int(),
       name: faker.person.firstName(),
@@ -139,9 +143,11 @@ export function DataTable() {
       });
 
       console.log("15k rows successfully added");
-      increaseOffset(1);
+      increaseOffset(1); // Adjust offset
     } catch (error) {
       console.error("Error adding rows:", error);
+    } finally {
+      setIs15kLoading(false); // Reset loading state after the operation completes
     }
   };
 
@@ -329,18 +335,17 @@ export function DataTable() {
 
   const addColumn = async (name: string, type: string) => {
     const columnName = name.toLowerCase().replace(/\s+/g, "_");
-  
+
     // Update `data` with the new column added to each row
     setData((prevData) => {
       const updatedData = prevData.map((row) => ({
         ...row,
         [columnName]: "", // Add the new column with default empty value
       }));
-      setModifiedRows(updatedData)
+      setModifiedRows(updatedData);
       return updatedData;
     });
   };
-  
 
   const addRow = async () => {
     if (!data[0]) return;
@@ -367,6 +372,9 @@ export function DataTable() {
 
   console.log("data", data);
 
+  if (isLoading || is15kLoading) {
+    return <Loading />;
+  }
   return (
     <div className="relative">
       <div className="absolute right-0 top-0 z-50 w-[25%]">

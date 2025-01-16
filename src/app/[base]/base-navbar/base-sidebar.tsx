@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { api } from "~/trpc/react";
 import { useParams, useRouter } from "next/navigation";
+import Loading from "~/components/ui/loading";
 
 const viewOptions = [
   { icon: Calendar, label: "Calendar", color: "text-green-500" },
@@ -101,7 +102,7 @@ export default function BaseSideBar() {
     return <div>Invalid base, table, or view ID</div>;
   }
 
-  if (isLoading) return <div>Loading views...</div>;
+  if (isLoading) return <Loading/>;
   if (isError) return <div>Error loading views</div>;
 
   return (

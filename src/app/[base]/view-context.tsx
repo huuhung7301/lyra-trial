@@ -256,13 +256,14 @@ export function ViewProvider({
       }
     }
   };
+  const combinedIsLoading = isBasicLoading || isAdvancedLoading || isLoading;
 
   return (
     <ViewContext.Provider
       value={{
         viewData,
         columns,
-        isLoading,
+        isLoading: combinedIsLoading,
         isError,
         updateViewData,
         tabledata,
