@@ -252,7 +252,7 @@ export function ViewProvider({
       }
     }
   };
-  const combinedIsLoading = isBasicLoading || isAdvancedLoading || isLoading;
+  const combinedIsLoading = isBasicLoading || isLoading;
 
   return (
     <ViewContext.Provider

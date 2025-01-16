@@ -72,7 +72,7 @@ export function DataTable() {
         tableContainer.removeEventListener("scroll", handleScroll);
       }
     };
-  }, []);
+  }, [tabledata]);
 
   useEffect(() => {
     if (tabledata) {
