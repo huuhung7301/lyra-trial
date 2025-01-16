@@ -10,15 +10,6 @@ export default function Loading() {
   return (
     <div className="h-screen flex flex-col bg-gray-100 z-100">
       {/* Header */}
-      <header className="h-16 bg-white border-b flex items-center px-4">
-        <Skeleton className="h-8 w-32" />
-        <div className="ml-auto flex space-x-2">
-          <Skeleton className="h-8 w-8 rounded-full" />
-          <Skeleton className="h-8 w-8 rounded-full" />
-          <Skeleton className="h-8 w-8 rounded-full" />
-        </div>
-      </header>
-
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <aside className="w-64 bg-white border-r p-4">

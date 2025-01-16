@@ -372,6 +372,7 @@ export function DataTable() {
 
   console.log("data", data);
 
+  console.log("15k loading status", is15kLoading)
   if (isLoading || is15kLoading) {
     return <Loading />;
   }
