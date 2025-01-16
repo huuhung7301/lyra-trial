@@ -54,12 +54,6 @@ export default function ColumnFilter() {
 
     // Only update viewData if it's fully valid, otherwise set default values
     if (viewData) {
-      const updatedViewData = {
-        ...viewData,
-        hiddenFields: updatedHiddenFields,
-      };
-
-      // Make sure required fields are set
       await updateViewData({
         id: viewData.id ?? 0, // Use default values if any required fields are missing
         name: viewData.name ?? "Unnamed View",
@@ -100,7 +94,7 @@ export default function ColumnFilter() {
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={!field.visible}
+                  checked={field.visible}
                   onChange={() => toggleField(index)}
                   className="sr-only peer"
                 />
@@ -120,13 +114,13 @@ export default function ColumnFilter() {
 
       <div className="p-3 border-t grid grid-cols-2 gap-2">
         <button
-          onClick={() => toggleAll(true)}
+          onClick={() => toggleAll(false)}
           className="px-4 py-2 text-sm bg-gray-100 rounded hover:bg-gray-200"
         >
           Hide all
         </button>
         <button
-          onClick={() => toggleAll(false)}
+          onClick={() => toggleAll(true)}
           className="px-4 py-2 text-sm bg-gray-100 rounded hover:bg-gray-200"
         >
           Show all

@@ -40,7 +40,8 @@ export function DataTable() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const { tabledata, increaseOffset } = useViewContext();
+  const { tabledata, increaseOffset, viewData, updateViewData } =
+    useViewContext();
   const params = useParams<{ base?: string | string[] }>(); // Account for base being string or string[]
   const baseParam = typeof params.base === "string" ? params.base : "0-0-0";
   const [modifiedRows, setModifiedRows] = useState<Record<string, unknown>[]>(
@@ -138,7 +139,7 @@ export function DataTable() {
       });
 
       console.log("15k rows successfully added");
-      increaseOffset(1)
+      increaseOffset(1);
     } catch (error) {
       console.error("Error adding rows:", error);
     }
@@ -154,7 +155,7 @@ export function DataTable() {
       console.log("No changes detected, skipping save");
       return;
     }
-    console.log("midify row", modifiedRows)
+    console.log("midify row", modifiedRows);
     try {
       console.log("Saving table data...");
       await updateTable2.mutateAsync({
@@ -302,7 +303,7 @@ export function DataTable() {
         />
       ),
     }));
-  }, [tabledata, searchQuery, handleCellNavigation]);
+  }, [data, searchQuery, handleCellNavigation]);
 
   const table = useReactTable<Record<string, unknown>>({
     data: data,
@@ -327,40 +328,43 @@ export function DataTable() {
   };
 
   const addColumn = async (name: string, type: string) => {
-    setData((prevData) =>
-      prevData.map((row) => ({
+    const columnName = name.toLowerCase().replace(/\s+/g, "_");
+  
+    // Update `data` with the new column added to each row
+    setData((prevData) => {
+      const updatedData = prevData.map((row) => ({
         ...row,
-        [name.toLowerCase().replace(/\s+/g, "_")]: "",
-      })),
-    );
-    try {
-      // await saveTable(); // Await the promise
-    } catch (error) {
-      console.error("Failed to save table:", error);
-    }
+        [columnName]: "", // Add the new column with default empty value
+      }));
+      setModifiedRows(updatedData)
+      return updatedData;
+    });
   };
+  
 
   const addRow = async () => {
     if (!data[0]) return;
-  
+
     // Create a new row with the same structure as the existing data
     const newRow = Object.keys(data[0]).reduce(
       (acc, key) => ({
         ...acc,
         [key]: "", // Default empty value for new row
       }),
-      { id: data.length + 1 }, // Assuming 'id' is unique and incrementing
+      {}, // Start with an empty object
     );
-    console.log("new row", newRow)
-  
-    // Add the new row to data and modifiedRows
+
+    // Add the 'id' field directly to the new row
+    const addNewRow = { ...newRow, id: (data.length + 1).toString() };
+    setModifiedRows((prevModifiedRows) => [...prevModifiedRows, addNewRow]);
+
+    // Add the new row to the data and newRows state
     setData((prevData) => {
-      const updatedData = [...prevData, newRow];
-      setModifiedRows((prevModifiedRows) => [...prevModifiedRows, newRow]);
+      const updatedData = [...prevData, addNewRow]; // Add new row to the data
       return updatedData;
     });
   };
-  
+
   console.log("data", data);
 
   return (

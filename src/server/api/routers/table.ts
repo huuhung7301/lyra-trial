@@ -60,18 +60,30 @@ export const tableRouter = createTRPCRouter({
         throw new Error(`View with ID ${id} not found`);
       }
 
-      // Default to empty arrays if undefined
+      // Retrieve filters, hiddenFields, and sorting from the view configuration
       const filters =
         (view.filters as Array<{
           field: string;
           operator: string;
           value?: string;
         }>) ?? [];
-
-      // Ensure sorting is always an array
-
       const hiddenFields = (view.hiddenFields as string[]) ?? [];
+      const sorting = Array.isArray(view.sorting) ? view.sorting : []; // Ensure sorting is an array
 
+      // Retrieve all keys from the first item in the tabledata JSON array
+      const keysQuery = await ctx.db.$queryRawUnsafe<{ field: string }[]>(`
+      SELECT 
+        jsonb_object_keys("tabledata"->0) AS field
+      FROM "Table"
+      WHERE id = ${id}
+    `);
+
+      const allFields = keysQuery.map((item) => item.field);
+
+      // Calculate fields to include (allFields - hiddenFields)
+      const fieldsToInclude = allFields.filter(
+        (field) => !hiddenFields.includes(field),
+      );
       // Build filter conditions as raw SQL
       const filterConditions = filters.length
         ? filters
@@ -100,15 +112,11 @@ export const tableRouter = createTRPCRouter({
             .join(" AND ")
         : "1=1";
 
-      // Construct sorting clause (only if sorting exists)
-      const sorting = Array.isArray(view.sorting) ? view.sorting : []; // Default to empty array if sorting is not a valid array
-
+      // Construct sorting clause
       const sortingClause = sorting.length
         ? sorting
-            .filter((item): item is SortingItem => item !== null) // Filter out null values
-            .map((item) => {
-              // Ensure item is an object with `field` and `direction` properties
-              const { field, direction } = item;
+            .filter((item): item is SortingItem => item !== null)
+            .map(({ field, direction }) => {
               if (
                 typeof field === "string" &&
                 (direction === "asc" || direction === "desc")
@@ -116,41 +124,39 @@ export const tableRouter = createTRPCRouter({
                 return `elem->>'${field}' ${direction}`;
               } else {
                 throw new Error(
-                  `Invalid field or direction: ${field}, ${direction}`,
+                  `Invalid sorting field or direction: ${field}, ${direction}`,
                 );
               }
             })
             .join(", ")
         : "";
 
-      const hiddenFieldsClause =
-        hiddenFields.length > 0
-          ? hiddenFields
-              .map((field) => `'${field}', elem->>'${field}'`)
-              .concat(`'id', elem->>'id'`) // Add 'id' field explicitly
-              .join(", ")
-          : `'id', elem->>'id'`; // If no hidden fields, include only 'id'
+      // Construct fields clause (fieldsToInclude only)
+      const fieldsClause = fieldsToInclude
+        .map((field) => `'${field}', elem->>'${field}'`)
+        .concat(`'id', elem->>'id'`) // Ensure the 'id' field is always included
+        .join(", ");
 
       // Construct raw SQL query
       const rawQuery = `
-        SELECT 
-          jsonb_agg(
-            jsonb_strip_nulls(
-              jsonb_build_object(
-                ${hiddenFieldsClause}
-              )
+      SELECT 
+        jsonb_agg(
+          jsonb_strip_nulls(
+            jsonb_build_object(
+              ${fieldsClause}
             )
-          ) AS tabledata
-        FROM (
-          SELECT 
-            elem
-          FROM "Table", jsonb_array_elements("tabledata") AS elem
-          WHERE "Table".id = ${view.tableid}
-            AND (${filterConditions})
-          ${sortingClause ? `ORDER BY ${sortingClause}` : ""}
-          LIMIT ${limit} OFFSET ${offset}
-        ) AS items;
-      `;
+          )
+        ) AS tabledata
+      FROM (
+        SELECT 
+          elem
+        FROM "Table", jsonb_array_elements("tabledata") AS elem
+        WHERE "Table".id = ${view.tableid}
+          AND (${filterConditions})
+        ${sortingClause ? `ORDER BY ${sortingClause}` : ""}
+        LIMIT ${limit} OFFSET ${offset}
+      ) AS items;
+    `;
 
       // Execute the query
       const result = await ctx.db.$queryRawUnsafe(rawQuery);
@@ -186,6 +192,21 @@ export const tableRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const { id, filters, sorting, hiddenFields, limit, offset } = input;
 
+      // Retrieve all keys from the first item in the tabledata JSON array
+      const keysQuery = await ctx.db.$queryRawUnsafe<{ field: string }[]>(`
+      SELECT 
+        jsonb_object_keys("tabledata"->0) AS field
+      FROM "Table"
+      WHERE id = ${id}
+    `);
+
+      const allFields = keysQuery.map((item) => item.field);
+
+      // Compute the fields to include (allFields - hiddenFields)
+      const fieldsToInclude = allFields.filter(
+        (field) => !hiddenFields.includes(field),
+      );
+
       // Build filter conditions as raw SQL
       const filterConditions = filters.length
         ? filters
@@ -214,55 +235,41 @@ export const tableRouter = createTRPCRouter({
             .join(" AND ")
         : "1=1";
 
+      // Construct sorting clause
       const sortingClause = sorting.length
         ? sorting
-            .filter((item): item is SortingItem => item !== null) // Filter out null values
-            .map((item) => {
-              // Ensure item is an object with `field` and `direction` properties
-              const { field, direction } = item;
-              if (
-                typeof field === "string" &&
-                (direction === "asc" || direction === "desc")
-              ) {
-                return `elem->>'${field}' ${direction}`;
-              } else {
-                throw new Error(
-                  `Invalid field or direction: ${field}, ${direction}`,
-                );
-              }
+            .map(({ field, direction }) => {
+              return `elem->>'${field}' ${direction}`;
             })
             .join(", ")
         : "";
 
-      // Construct hidden fields clause
-      const hiddenFieldsClause =
-        hiddenFields.length > 0
-          ? hiddenFields
-              .map((field) => `'${field}', elem->>'${field}'`)
-              .concat(`'id', elem->>'id'`) // Add 'id' field explicitly
-              .join(", ")
-          : `'id', elem->>'id'`; // If no hidden fields, include only 'id'
+      // Construct fields clause (fieldsToInclude only)
+      const fieldsClause = fieldsToInclude
+        .map((field) => `'${field}', elem->>'${field}'`)
+        .concat(`'id', elem->>'id'`) // Ensure the 'id' field is always included
+        .join(", ");
 
       // Construct raw SQL query
       const rawQuery = `
-        SELECT 
-          jsonb_agg(
-            jsonb_strip_nulls(
-              jsonb_build_object(
-                ${hiddenFieldsClause}
-              )
+      SELECT 
+        jsonb_agg(
+          jsonb_strip_nulls(
+            jsonb_build_object(
+              ${fieldsClause}
             )
-          ) AS tabledata
-        FROM (
-          SELECT 
-            elem
-          FROM "Table", jsonb_array_elements("tabledata") AS elem
-          WHERE "Table".id = ${id}
-            AND (${filterConditions})
-          ${sortingClause ? `ORDER BY ${sortingClause}` : ""}
-          LIMIT ${limit} OFFSET ${offset}
-        ) AS items;
-      `;
+          )
+        ) AS tabledata
+      FROM (
+        SELECT 
+          elem
+        FROM "Table", jsonb_array_elements("tabledata") AS elem
+        WHERE "Table".id = ${id}
+          AND (${filterConditions})
+        ${sortingClause ? `ORDER BY ${sortingClause}` : ""}
+        LIMIT ${limit} OFFSET ${offset}
+      ) AS items;
+    `;
 
       // Execute the query
       const result = await ctx.db.$queryRawUnsafe(rawQuery);
@@ -347,22 +354,26 @@ export const tableRouter = createTRPCRouter({
 
         // Query to find the index of the row based on 'id' and update the table
         const query = `
-            WITH idx_cte AS (
-              SELECT idx
-              FROM "Table",jsonb_array_elements("Table".tabledata) WITH ORDINALITY arr(row, idx)
-              WHERE "Table".id = '${tableId}'
-              AND row->>'id' = '${rowId}'
-              LIMIT 1
-            )
-            UPDATE "Table"
-            SET tabledata = jsonb_set(
+        WITH idx_cte AS (
+          SELECT idx
+          FROM "Table", jsonb_array_elements("Table".tabledata) WITH ORDINALITY arr(row, idx)
+          WHERE "Table".id = '${tableId}'
+          AND row->>'id' = '${rowId}'
+          LIMIT 1
+        )
+        UPDATE "Table"
+        SET tabledata = CASE
+          WHEN EXISTS (SELECT 1 FROM idx_cte) THEN
+            jsonb_set(
               tabledata,
-              ('{' || (idx_cte.idx - 1) || '}')::text[],
-              '${newRowJson}'::jsonb
+              ('{' || (SELECT idx - 1 FROM idx_cte) || '}')::text[],
+              '${newRowJson}'::jsonb  -- Update with the new row
             )
-            FROM idx_cte
-            WHERE id = '${tableId}';
-          `;
+          ELSE
+            tabledata || '${newRowJson}'::jsonb  
+        END
+        WHERE "Table".id = '${tableId}';
+      `;
 
         await ctx.db.$queryRawUnsafe(query);
       }

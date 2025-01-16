@@ -86,7 +86,7 @@ export default function QueryBuilder({ onClose }: { onClose: () => void }) {
     }
   };
 
-  const handleConditionChange = (
+  const handleConditionChange = async (
     index: number,
     key: keyof Condition,
     value: string,
@@ -97,21 +97,21 @@ export default function QueryBuilder({ onClose }: { onClose: () => void }) {
       }
       return condition;
     });
-    syncWithViewData(updatedConditions);
+    await syncWithViewData(updatedConditions);
   };
 
-  const addCondition = () => {
+  const addCondition = async () => {
     const newCondition: Condition = {
       field: defaultField,
       operator: "contains",
       value: "",
     };
-    syncWithViewData([...conditions, newCondition]);
+    await syncWithViewData([...conditions, newCondition]);
   };
 
-  const removeCondition = (index: number) => {
+  const removeCondition = async (index: number) => {
     const updatedConditions = conditions.filter((_, i) => i !== index);
-    syncWithViewData(updatedConditions);
+    await syncWithViewData(updatedConditions);
   };
 
   const handleClose = async () => {
