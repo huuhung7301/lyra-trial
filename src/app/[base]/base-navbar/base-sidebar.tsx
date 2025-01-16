@@ -82,12 +82,7 @@ export default function BaseSideBar() {
         name: "Grid View",
         filters: [],
         sorting: [],
-        hiddenFields: [
-          "name",
-          "notes",
-          "status",
-          "assignee"
-        ],
+        hiddenFields: [],
         tableid: tableIdNum!,
       });
       router.replace(`${baseId}-${tableIdNum}-${newView.id}`);
